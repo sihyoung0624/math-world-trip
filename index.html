@@ -222,6 +222,9 @@
   .reset-row .rprog{font-size:11px;color:var(--ink-soft)}
   .reset-btn{border:2px solid #E06B6B;background:#fff;color:#E06B6B;border-radius:11px;padding:6px 12px;font-weight:800;font-size:12px;cursor:pointer;flex-shrink:0}
   .reset-btn:active{background:#FFECEC}
+  .vis-btn{border:2px solid var(--grass);background:#fff;color:#2f8f3a;border-radius:11px;padding:6px 12px;font-weight:800;font-size:12px;cursor:pointer;flex-shrink:0;min-width:80px}
+  .vis-btn:active{transform:translateY(1px)}
+  .vis-btn.off{border-color:var(--ink-soft);color:var(--ink-soft);background:#F2F1F4}
   .hub-head .htitle{font-size:26px;font-weight:800;letter-spacing:-.5px;margin-top:6px}
   .hub-head .hsub{font-size:13px;color:var(--ink-soft);margin-top:4px}
   .hub-head .globe{font-size:64px;display:inline-block;animation:spin 12s linear infinite}
@@ -324,6 +327,11 @@
       <input id="setNameInput" type="text" maxlength="6" placeholder="새 이름"
         style="width:100%;padding:11px 12px;font-size:16px;font-weight:800;text-align:center;border:3px solid var(--ink);border-radius:14px;box-sizing:border-box;margin:8px 0">
       <button class="set-btn" onclick="window.HUB.changeName()">이름 저장</button>
+    </div>
+    <div class="set-card">
+      <div class="set-title">👁️ 과목 표시 / 숨기기</div>
+      <div class="set-note">관심 없거나 필요 없는 과목은 숨길 수 있어요. 숨겨도 진도는 그대로 보관되고, 언제든 다시 표시할 수 있어요.</div>
+      <div id="visList"></div>
     </div>
     <div class="set-card">
       <div class="set-title">🔄 과목별 진도 초기화</div>
@@ -441,7 +449,7 @@ function makeOpts(correct, distractors){
 const ANIMALS=[{e:"🐰",n:"방방 토끼"},{e:"🐱",n:"냐옹 고양이"},{e:"🐶",n:"멍멍 강아지"},
   {e:"🦊",n:"꾀돌 여우"},{e:"🐼",n:"대나무 판다"},{e:"🦄",n:"무지개 유니콘"},
   {e:"🐧",n:"뒤뚱 펭귄"},{e:"🦁",n:"용감 사자"},{e:"🐢",n:"느긋 거북"},{e:"🦉",n:"박사 부엉이"},
-  {e:"🐯",n:"줄무늬 호랑이"},{e:"🐨",n:"코알라"},{e:"🐲",n:"전설의 용"},{e:"🦅",n:"하늘 독수리"},{e:"🦚",n:"화려한 공작"}];
+  {e:"🐯",n:"줄무늬 호랑이"},{e:"🐨",n:"코알라"},{e:"🐲",n:"전설의 용"},{e:"🦅",n:"하늘 독수리"},{e:"🦚",n:"화려한 공작"},{e:"🦩",n:"분홍 플라밍고"},{e:"🦛",n:"느긋 하마"},{e:"🦘",n:"점프 캥거루"}];
 const HATS=[{id:"none",e:"❌"},{id:"crown",e:"👑"},{id:"party",e:"🎉"},{id:"flower",e:"🌸"},
   {id:"cap",e:"🧢"},{id:"wizard",e:"🎩"},{id:"star",e:"⭐"},{id:"bow",e:"🎀"},{id:"glasses",e:"🕶️"},
   {id:"ribbon",e:"💝"},{id:"halo",e:"😇"},{id:"hat",e:"👒"}];
@@ -770,6 +778,50 @@ const GEN={
         {test:v=>v===y,type:"read",msg:`그건 y야! x를 먼저 구해. x=${x}.`},
         {test:()=>true,type:"concept",msg:`한 변수의 계수를 맞춰 빼서 소거! x=${x}, y=${y}.`}]};
   },
+
+  // ===== 이차방정식 (인수분해·근의공식·포물선) =====
+  // 제곱 풀기 기초: x² = n
+  quadSquare(){
+    const r=rnd(2,9);const n=r*r;
+    return {type:"input",q:`<b>x² = ${n}</b> 일 때, x는? (양수 답만 적어줘. 사실 ±${r} 둘 다야!)<br>🎾 비유: 정사각형 넓이가 ${n}이면 한 변은?`,answer:r,
+      okMsg:`정답! ${r}×${r}=${n} → x=${r} 또는 −${r} 🎯`,
+      wrongHints:[
+        {test:v=>v===n/2,type:"concept",msg:`반으로 나누는 게 아니야! <b>곱해서</b> ${n}이 되는 수. ${r}×${r}=${n}이니 x=${r}.`},
+        {test:()=>true,type:"calc",msg:`${r}×${r}=${n}이니 x=${r} (또는 −${r}).`}]};
+  },
+  // 인수분해: x²+bx+c=0, 두 정수해
+  quadFactor(){
+    let p,q;do{p=rnd(-5,5);q=rnd(-5,5);}while(p===0&&q===0);
+    const b=-(p+q),c=p*q;const small=Math.min(p,q);
+    const bs=b>=0?`+ ${b}`:`− ${-b}`,cs=c>=0?`+ ${c}`:`− ${-c}`;
+    return {type:"input",allowNeg:true,figureRaw:drawParabola(p,q,{a:0.45}),
+      q:`<b>x² ${bs}x ${cs} = 0</b><br>그래프(포물선)가 x축과 만나는 두 점이 답이야! 더 <b>작은</b> 해는? (인수분해: 곱해서 ${c}, 더해서 ${b}인 두 수 → ${-p}, ${-q})`,answer:small,
+      okMsg:`천재! (x${-p>=0?'+'+(-p):'−'+p})(x${-q>=0?'+'+(-q):'−'+q})=0 → x=${p} 또는 ${q}. 작은 건 ${small} 🏆`,
+      wrongHints:[
+        {test:v=>v===Math.max(p,q),type:"read",msg:`그건 더 <b>큰</b> 해야! 작은 쪽(${small})을 적어줘. 포물선이 x축 만나는 왼쪽 점!`},
+        {test:()=>true,type:"concept",msg:`곱해서 ${c}, 더해서 ${b}인 두 수는 ${-p}, ${-q}. 그래서 x=${p} 또는 ${q}. 그래프의 x절편이야!`}]};
+  },
+  // 근의공식 맛보기: 판별식 D
+  quadDisc(){
+    let p,q;do{p=rnd(-4,4);q=rnd(-4,4);}while(p===q);
+    const a=1,b=-(p+q),c=p*q;const D=b*b-4*a*c;
+    return {type:"input",allowNeg:true,
+      q:`근의공식의 핵심 <b>판별식 D = b²−4ac</b>!<br><b>x² ${b>=0?'+ '+b:'− '+(-b)}x ${c>=0?'+ '+c:'− '+(-c)} = 0</b> 에서 (a=1, b=${b}, c=${c})<br>D = ${b}² − 4×1×(${c}) = ?`,answer:D,
+      okMsg:`정답! D=${b*b}−${4*c}=${D}. D>0이면 서로 다른 해 2개! 🎓`,
+      wrongHints:[
+        {test:v=>v===b*b,type:"concept",msg:`−4ac 부분도 빼야 해! ${b*b} − 4×1×${c} = ${D}.`},
+        {test:()=>true,type:"calc",msg:`${b}²=${b*b}, 4×1×${c}=${4*c}, D=${b*b}−${4*c}=${D}.`}]};
+  },
+  // 포물선 읽기: x절편으로 해 찾기 (그래프→식)
+  quadGraph(){
+    let p,q;do{p=rnd(-4,4);q=rnd(-4,4);}while(p===q);const small=Math.min(p,q);
+    return {type:"input",allowNeg:true,figureRaw:drawParabola(p,q,{a:0.45}),
+      q:`이 포물선이 x축과 만나는 점이 이차방정식의 <b>해</b>야.<br>두 해 중 <b>작은</b> 값은? (주황 점의 x좌표를 봐!)`,answer:small,
+      okMsg:`맞아! x절편이 ${p}와 ${q} → 작은 해는 ${small} 📈`,
+      wrongHints:[
+        {test:v=>v===Math.max(p,q),type:"read",msg:`그건 큰 해(오른쪽 점)야! 왼쪽 점이 작은 해 ${small}.`},
+        {test:()=>true,type:"read",msg:`주황 점 두 개의 x좌표가 ${p}, ${q}. 작은 건 ${small}.`}]};
+  },
 };
 
 /* ============================================================
@@ -982,23 +1034,42 @@ const GROUPS=[
       {gen:"elimHard",repeat:2},
      ]},
   ]},
-  {title:"🌟 비밀의 고등 도전 성 (보너스)",bonus:true,countries:[
-    {flag:"🏯",lv:"BONUS · 고등",name:"이차방정식 성",bonus:true,desc:"x²이 나오는 신비한 방정식! [중등 졸업 후 열림]",
+  {title:"🌟 고등 도전 (이차방정식)",bonus:true,countries:[
+    {flag:"🟢",lv:"고등 1 · 제곱 풀기",name:"제곱의 샘",bonus:true,desc:"x²=n 풀기 [중등 졸업 후 열림]",
      steps:[
       {type:"teach",step:"새로운 세계",title:"x²이 뭐야?",
-       html:`<p>고등엔 <b>x²</b>(x×x)이 나와. <b>이차방정식</b>!</p>
-       <div class="eqbox">x² = 9 → x = 3 또는 −3</div><p>답이 <b>2개</b>일 수 있어!</p>`,
-       tip:"제곱 풀기 = '곱해서 이게 되는 수' 찾기!"},
-      {type:"quiz",step:"제곱 풀기",title:"제곱 거꾸로",
-       q:"<b>x² = 16</b> 일 때 x는?",opts:["4","8","16","2"],answer:0,okMsg:"맞아! 4×4=16 → x=4(또는 −4) 🏯",
-       diag:{1:{type:"concept",msg:"8은 절반! 4×4=16."},2:{type:"concept",msg:"16을 또 곱하면 너무 커!"},3:{type:"calc",msg:"2×2=4. 더 큰 수를!"}}},
-      {type:"teach",step:"인수분해 맛보기",title:"두 수의 곱이 0이면?",
-       html:`<p><b>두 수를 곱해 0</b>이면 둘 중 하나는 0!</p><p><b>(x−2)(x−3)=0</b> → x=2 또는 3</p>`,
-       tip:"곱이 0 → 괄호 안을 각각 0으로!"},
-      {type:"quiz",step:"고등 도전",title:"답이 두 개!",
-       q:"<b>(x−5)(x+1)=0</b> 의 답 x는?",opts:["5 또는 −1","5 또는 1","−5 또는 1","5만"],answer:0,
-       okMsg:"🎓 천재! x=5 또는 −1. 고등 정복!! 🏯👑",
-       diag:{1:{type:"calc",msg:"(x+1)=0 이면 x=−1!"},2:{type:"calc",msg:"(x−5)=0 이면 x=+5!"},3:{type:"read",msg:"괄호 둘 → 답도 둘!"}}},
+       html:`<p>고등엔 <b>x²</b>(x를 두 번 곱한 것)이 나와. 이게 <b>이차방정식</b>이야!</p>
+       <p>🎾 <b>비유</b>: 공을 위로 던지면 올라갔다 내려오지? 그 길이 바로 <b>포물선</b>이고, 이차방정식의 그래프야.</p>
+       <div class="eqbox">x² = 9 → x = 3 또는 −3<br>(3×3=9, (−3)×(−3)=9 둘 다!)</div>
+       <p>그래서 이차방정식은 답이 <b>2개</b>일 수 있어!</p>`,
+       tip:"<b>x² = n → 곱해서 n이 되는 수!</b> (±둘 다)"},
+      {gen:"quadSquare",repeat:3},
+     ]},
+    {flag:"🔵",lv:"고등 2 · 인수분해",name:"인수분해의 탑",bonus:true,desc:"(x−p)(x−q)=0 으로 쪼개기",
+     steps:[
+      {type:"teach",step:"곱이 0이면?",title:"두 수의 곱이 0이면 하나는 0!",
+       html:`<p><b>두 수를 곱해서 0</b>이면, 둘 중 적어도 하나는 0이야. (예: ☐×△=0이면 ☐=0이거나 △=0)</p>
+       <p>그래서 <b>(x−2)(x−3)=0</b> → x=2 또는 x=3!</p>
+       <p>x²+bx+c=0을 (x−p)(x−q)=0으로 쪼개려면: <b>곱해서 c, 더해서 −b</b>인 두 수를 찾아 🔍</p>`,
+       tip:"<b>곱이 0 → 괄호 각각을 0으로!</b> 포물선의 x절편이 답."},
+      {gen:"quadFactor",repeat:4},
+     ]},
+    {flag:"📈",lv:"고등 3 · 그래프",name:"포물선 언덕",bonus:true,desc:"그래프(포물선)로 해 읽기",
+     steps:[
+      {type:"teach",step:"그래프와 해",title:"x절편이 곧 해!",
+       html:`<p>이차방정식의 해는 <b>포물선이 x축과 만나는 점</b>(x절편)이야!</p>
+       <p>포물선이 x축과<br>• 두 번 만나면 → 해 2개<br>• 한 번 스치면 → 해 1개<br>• 안 만나면 → 해 없음<br>그래프만 봐도 해를 알 수 있어 📈</p>`,
+       tip:"<b>포물선 ∩ x축 = 이차방정식의 해!</b>"},
+      {gen:"quadGraph",repeat:3},
+     ]},
+    {flag:"🎓",lv:"고등 4 · 근의공식",name:"근의공식 신전",bonus:true,desc:"판별식 D로 해의 개수 알기",
+     steps:[
+      {type:"teach",step:"만능 공식",title:"어떤 이차방정식도 푸는 공식",
+       html:`<p>인수분해가 안 되는 이차방정식도 <b>근의공식</b>으로 풀 수 있어! 그 핵심이 <b>판별식 D = b²−4ac</b>야.</p>
+       <p>• <b>D > 0</b>: 해 2개 (포물선이 x축 2번 만남)<br>• <b>D = 0</b>: 해 1개 (살짝 스침)<br>• <b>D < 0</b>: 실수해 없음 (안 만남)</p>
+       <div class="eqbox">D = b² − 4ac</div>`,
+       tip:"<b>판별식 D = b²−4ac! 부호로 해 개수를 알아.</b>"},
+      {gen:"quadDisc",repeat:3},
      ]},
   ]},
 ];
@@ -1175,7 +1246,8 @@ const game={
   cardQuiz(s){
     const card=document.createElement("div");card.className="card";
     let sc=s.scaleL!==undefined?`<div class="scale">${drawScale(s.scaleL,s.scaleR,s.balanced)}</div>`:"";
-    card.innerHTML=`<div class="step">${s.step||"연습"}</div><h3>${s.title||"문제"}</h3><div class="q">${s.q}</div>${sc}`;
+    let fig=s.figureRaw?`<div style="display:flex;justify-content:center;margin:10px 0">${s.figureRaw}</div>`:"";
+    card.innerHTML=`<div class="step">${s.step||"연습"}</div><h3>${s.title||"문제"}</h3>${fig}<div class="q">${s.q}</div>${sc}`;
     const og=document.createElement("div");og.className="opts"+(s.opts.some(o=>o.length>5)?" col":"");
     // 정답 인덱스 보정: makeOpts 사용 문제는 answer:-1 + _ans/_ansLabel
     let ansIdx=s.answer;
@@ -1209,7 +1281,8 @@ const game={
   // 숫자 입력
   cardInput(s){
     const card=document.createElement("div");card.className="card";
-    card.innerHTML=`<div class="step">${s.step||"연습"}</div><h3>${s.title||"직접 풀기"}</h3><div class="q">${s.q}</div>
+    const fig=s.figureRaw?`<div style="display:flex;justify-content:center;margin:10px 0">${s.figureRaw}</div>`:"";
+    card.innerHTML=`<div class="step">${s.step||"연습"}</div><h3>${s.title||"직접 풀기"}</h3>${fig}<div class="q">${s.q}</div>
       <div class="inputlabel">키패드로 답 입력 후 ✓</div><div class="answerbox" id="ansBox"><span class="cursor">_</span></div>`;
     const pad=document.createElement("div");pad.className="numpad";
     const keys=s.allowNeg?["1","2","3","4","5","6","7","8","9","±","0","←","✓"]:["1","2","3","4","5","6","7","8","9","←","0","✓"];
@@ -1372,13 +1445,30 @@ function drawDistributive(a,b,c){
     <text x="${W/2}" y="${H-8}" font-size="13" font-weight="800" text-anchor="middle" fill="#3D3A4E">${a}(${b}x+${c}) = ${a*b}x + ${a*c}</text></svg>`;
 }
 
+// 포물선 SVG: y=a(x-p)(x-q), x절편 p,q 표시 (highlightRange: null|'in'|'out')
+function drawParabola(p,q,opt){
+  opt=opt||{};const a=opt.a||0.5,R=opt.range||6;
+  const lo=Math.min(p,q),hi=Math.max(p,q);
+  const W=300,H=300,cx=W/2,cy=H/2,unit=(W/2-26)/R;
+  const px=x=>cx+x*unit,py=y=>cy-y*unit;
+  const f=x=>a*(x-p)*(x-q);
+  let pts=[];for(let x=-R;x<=R;x+=0.15){const y=f(x);if(y>=-R&&y<=R)pts.push(px(x)+','+py(y));}
+  let grid="";for(let i=-R;i<=R;i++){grid+=`<line x1="${px(i)}" y1="${py(-R)}" x2="${px(i)}" y2="${py(R)}" stroke="#EFEADB" stroke-width="1"/><line x1="${px(-R)}" y1="${py(i)}" x2="${px(R)}" y2="${py(i)}" stroke="#EFEADB" stroke-width="1"/>`;}
+  let band="";
+  if(opt.range_hl==="in"){band=`<rect x="${px(lo)}" y="${py(0)-6}" width="${px(hi)-px(lo)}" height="12" fill="#3FA047" opacity="0.4"/>`;}
+  else if(opt.range_hl==="out"){band=`<rect x="${px(-R)}" y="${py(0)-6}" width="${px(lo)-px(-R)}" height="12" fill="#FF8A6B" opacity="0.4"/><rect x="${px(hi)}" y="${py(0)-6}" width="${px(R)-px(hi)}" height="12" fill="#FF8A6B" opacity="0.4"/>`;}
+  let axis=`<line x1="${px(-R)}" y1="${py(0)}" x2="${px(R)}" y2="${py(0)}" stroke="#3D3A4E" stroke-width="2"/><line x1="${px(0)}" y1="${py(-R)}" x2="${px(0)}" y2="${py(R)}" stroke="#3D3A4E" stroke-width="2"/>`;
+  let roots="";[p,q].forEach(r=>{if(r>=-R&&r<=R){const fill=opt.range_hl?"white":"#FF8A6B";roots+=`<circle cx="${px(r)}" cy="${py(0)}" r="5" fill="${fill}" stroke="#3D3A4E" stroke-width="2.5"/><text x="${px(r)}" y="${py(0)+20}" font-size="12" font-weight="800" text-anchor="middle" fill="#3D3A4E">${r}</text>`;}});
+  let curve=`<polyline points="${pts.join(' ')}" fill="none" stroke="#6C7BD6" stroke-width="3"/>`;
+  return `<div class="figure"><svg viewBox="0 0 ${W} ${H}" width="100%" style="max-width:280px" xmlns="http://www.w3.org/2000/svg">${grid}${band}${axis}${curve}${roots}</svg></div>`;
+}
+
 // 시작
 
 
 window.GAMES["eq"] = {
   start:function(){ window.game=game; document.documentElement.style.setProperty('--shape','#FF8A6B'); document.body.style.background="radial-gradient(circle at 15% 12%, #FFE7A8 0 60px, transparent 61px),linear-gradient(160deg,#BDE6F8 0%, #DFF3FF 40%, #FFF8EC 100%)"; game.selectUser('eunhye'); },
   progress:function(){ try{ var p=loadProgress('eunhye'); return {cleared:(p.clearedCountry+1),total:COUNTRIES.length,stars:p.stars||0}; }catch(e){ return {cleared:0,total:0,stars:0}; } },
-  resetProgress:function(){ try{ localStorage.removeItem("eq"+"placeholder"); }catch(e){} },
   _game:game
 };
 })();
@@ -1430,10 +1520,14 @@ function drawPlane(opts){
   let line="";
   if(opts.line){const {a,b}=opts.line;const x1=-R,y1=a*x1+b,x2=R,y2=a*x2+b;
     line=`<line x1="${px(x1)}" y1="${py(y1)}" x2="${px(x2)}" y2="${py(y2)}" stroke="#FF8A6B" stroke-width="3"/>`;}
+  let parab="";
+  if(opts.parab){const {pa,pp,pq}=opts.parab;const f=x=>pa*(x-pp)*(x-pq);
+    let pp2=[];for(let x=-R;x<=R;x+=0.15){const y=f(x);if(y>=-R&&y<=R)pp2.push(px(x)+','+py(y));}
+    parab=`<polyline points="${pp2.join(' ')}" fill="none" stroke="#6C7BD6" stroke-width="3"/>`;}
   let pts="";
   (opts.points||[]).forEach(p=>{pts+=`<circle cx="${px(p[0])}" cy="${py(p[1])}" r="5" fill="#5BB89A" stroke="#3D3A4E" stroke-width="2"/>`;
     if(p[2])pts+=`<text x="${px(p[0])+8}" y="${py(p[1])-6}" font-size="11" font-weight="800" fill="#3FA047">(${p[0]}, ${p[1]})</text>`;});
-  return `<div class="figure"><svg width="${W}" height="${W}" viewBox="0 0 ${W} ${W}" xmlns="http://www.w3.org/2000/svg">${grid}${axis}${line}${pts}</svg></div>`;
+  return `<div class="figure"><svg width="${W}" height="${W}" viewBox="0 0 ${W} ${W}" xmlns="http://www.w3.org/2000/svg">${grid}${axis}${parab}${line}${pts}</svg></div>`;
 }
 // 함수 기계 그림
 function machineView(a,b,x){
@@ -1533,6 +1627,28 @@ const GEN={
         {test:v=>v===y,type:"read",msg:`그건 y좌표야! x좌표를 먼저. x=${x}.`},
         {test:()=>true,type:"concept",msg:`두 식을 =로 놓고 x를 모아! (${b2}−${b1})÷(${a1}−${a2})=${x}.`}]};
   },
+
+  // ===== 그래프 결합 응용 (직선 + 포물선) =====
+  // 직선과 포물선의 교점: 포물선 y=(x-p)(x-q), 직선 y=0(x축)과의 교점은 x절편
+  parabXcept(){
+    let p,q;do{p=rnd(-3,3);q=rnd(-3,3);}while(p===q);const small=Math.min(p,q);
+    return {type:"input",allowNeg:true,figureRaw:drawPlane({parab:{pa:0.5,pp:p,pq:q},range:6}),
+      q:`파란 <b>포물선</b>이 <b>x축(가로선)과 만나는</b> 두 점 중, 더 <b>작은</b> x값은?<br>(포물선과 직선의 교점 = 그 x에서 높이가 같아지는 곳!)`,answer:small,
+      okMsg:`맞아! 포물선이 x축과 ${p}, ${q}에서 만나 → 작은 건 ${small} 📈`,
+      wrongHints:[
+        {test:v=>v===Math.max(p,q),type:"read",msg:`그건 오른쪽(큰) 교점! 왼쪽 작은 값 ${small}.`},
+        {test:()=>true,type:"read",msg:`포물선이 x축 만나는 두 점이 ${p}, ${q}. 작은 건 ${small}.`}]};
+  },
+  // 직선이 포물선보다 위/아래: 어디서 만나나 (높이 비교)
+  parabLine(){
+    const k=rnd(1,4); // 포물선 y=x², 직선 y=k² → x=±k에서 만남
+    return {type:"input",figureRaw:drawPlane({parab:{pa:1,pp:-k,pq:k},line:{a:0,b:k*k>6?6:0},range:Math.max(6,k+2)}),
+      q:`🎢 포물선 y = x² 와 가로 직선 y = ${k*k} 이 만나는 점의 x값(양수)은?<br>(x² = ${k*k} 이 되는 x! 높이가 같아지는 곳)`,answer:k,
+      okMsg:`천재! x²=${k*k} → x=${k} (또는 −${k})에서 만나! 🎯`,
+      wrongHints:[
+        {test:v=>v===k*k,type:"concept",msg:`x²=${k*k}이니 x는 ${k*k}이 아니라 <b>제곱해서 ${k*k}</b>인 수! ${k}×${k}=${k*k} → x=${k}.`},
+        {test:()=>true,type:"calc",msg:`x²=${k*k} → x=${k}.`}]};
+  },
 };
 
 
@@ -1605,6 +1721,25 @@ const GROUPS=[
        <div class="eqbox">y=2x+1, y=x+3<br>→ 2x+1 = x+3 → x=2</div>`,
        tip:"<b>두 식을 =로 놓고 x 구하기 = 교점!</b>"},
       {gen:"intersect",repeat:3},
+     ]},
+  ]},
+  {title:"🌟 고등 도전 (직선 + 포물선)",bonus:true,countries:[
+    {flag:"🎢",lv:"고등 1 · 포물선 만남",name:"곡선의 골짜기",bonus:true,desc:"직선과 포물선이 만나는 점 [직선 마스터 졸업 후]",
+     steps:[
+      {type:"teach",step:"두 그래프의 만남",title:"직선과 곡선이 만나는 곳",
+       html:`<p>지금까지 직선만 봤지? 이제 <b>포물선(곡선)</b>과 함께 봐!</p>
+       <p>두 그래프가 <b>만나는 점</b> = 둘의 <b>높이(y)가 같아지는</b> 곳!<br>포물선이 x축과 만나면, 그게 이차방정식의 해이기도 해 🎢</p>`,
+       tip:"<b>두 그래프 교점 = 높이가 같아지는 x!</b>"},
+      {gen:"parabXcept",repeat:3},
+     ]},
+    {flag:"📊",lv:"고등 2 · 높이 비교",name:"높이 맞춤의 탑",bonus:true,desc:"포물선 y=x²와 직선이 만나는 점",
+     steps:[
+      {type:"teach",step:"높이가 같아지는 곳",title:"y가 같으면 만난다",
+       html:`<p>포물선 <b>y = x²</b> 와 가로 직선 <b>y = (어떤 수)</b>가 만나려면, 그 높이에서 x²이 그 수가 돼야 해!</p>
+       <div class="eqbox">y=x² 와 y=9 → x²=9 → x=3 또는 −3</div>
+       <p>이렇게 그래프 문제가 이차방정식으로 연결돼 🔗</p>`,
+       tip:"<b>포물선=직선 → 높이가 같다 → 방정식으로!</b>"},
+      {gen:"parabLine",repeat:3},
      ]},
   ]},
   {title:"🏯 비밀의 도전 성 (보너스)",bonus:true,countries:[
@@ -1821,7 +1956,6 @@ const game={
 window.GAMES["func"] = {
   start:function(){ window.game=game; document.documentElement.style.setProperty('--shape','#5BB89A'); document.body.style.background="radial-gradient(circle at 15% 12%, #C4ECDC 0 60px, transparent 61px),linear-gradient(160deg,#A8E0C8 0%, #DCF5EC 40%, #FFF8EC 100%)"; game.selectUser('eunhye'); },
   progress:function(){ try{ var p=loadProgress('eunhye'); return {cleared:(p.clearedCountry+1),total:COUNTRIES.length,stars:p.stars||0}; }catch(e){ return {cleared:0,total:0,stars:0}; } },
-  resetProgress:function(){ try{ localStorage.removeItem("func"+"placeholder"); }catch(e){} },
   _game:game
 };
 })();
@@ -1854,6 +1988,24 @@ const BGS=[{id:"sky",e:"☁️",grad:"linear-gradient(170deg,#C8F0DE,#FFF8EC)"},
   {id:"space",e:"🚀",grad:"linear-gradient(170deg,#2B2B55,#5B4B8A)"},
   {id:"rainbow",e:"🌈",grad:"linear-gradient(170deg,#FFB3BA,#BAE1FF,#FFFFBA)"}];
 const USERS={eunhye:{name:"은혜",face:"🐰"}};
+
+/* ============ 포물선 SVG (이차부등식) ============ */
+function drawParabola(p,q,opt){
+  opt=opt||{};const a=opt.a||0.5,R=opt.range||6;
+  const lo=Math.min(p,q),hi=Math.max(p,q);
+  const W=300,H=300,cx=W/2,cy=H/2,unit=(W/2-26)/R;
+  const px=x=>cx+x*unit,py=y=>cy-y*unit;
+  const f=x=>a*(x-p)*(x-q);
+  let pts=[];for(let x=-R;x<=R;x+=0.15){const y=f(x);if(y>=-R&&y<=R)pts.push(px(x)+','+py(y));}
+  let grid="";for(let i=-R;i<=R;i++){grid+=`<line x1="${px(i)}" y1="${py(-R)}" x2="${px(i)}" y2="${py(R)}" stroke="#EFEADB" stroke-width="1"/><line x1="${px(-R)}" y1="${py(i)}" x2="${px(R)}" y2="${py(i)}" stroke="#EFEADB" stroke-width="1"/>`;}
+  let band="";
+  if(opt.range_hl==="in"){band=`<rect x="${px(lo)}" y="${py(0)-6}" width="${px(hi)-px(lo)}" height="12" fill="#3FA047" opacity="0.4"/>`;}
+  else if(opt.range_hl==="out"){band=`<rect x="${px(-R)}" y="${py(0)-6}" width="${px(lo)-px(-R)}" height="12" fill="#C77DC4" opacity="0.45"/><rect x="${px(hi)}" y="${py(0)-6}" width="${px(R)-px(hi)}" height="12" fill="#C77DC4" opacity="0.45"/>`;}
+  let axis=`<line x1="${px(-R)}" y1="${py(0)}" x2="${px(R)}" y2="${py(0)}" stroke="#3D3A4E" stroke-width="2"/><line x1="${px(0)}" y1="${py(-R)}" x2="${px(0)}" y2="${py(R)}" stroke="#3D3A4E" stroke-width="2"/>`;
+  let roots="";[p,q].forEach(r=>{if(r>=-R&&r<=R){roots+=`<circle cx="${px(r)}" cy="${py(0)}" r="5" fill="white" stroke="#3D3A4E" stroke-width="2.5"/><text x="${px(r)}" y="${py(0)+20}" font-size="12" font-weight="800" text-anchor="middle">${r}</text>`;}});
+  let curve=`<polyline points="${pts.join(' ')}" fill="none" stroke="#6C7BD6" stroke-width="3"/>`;
+  return `<div class="figure"><svg viewBox="0 0 ${W} ${H}" width="100%" style="max-width:280px" xmlns="http://www.w3.org/2000/svg">${grid}${band}${axis}${curve}${roots}</svg></div>`;
+}
 
 /* ============ 부등식 수직선 SVG ============ */
 function drawIneqLine(x0, dir){
@@ -1927,6 +2079,35 @@ const GEN={
       wrongHints:[
         {test:()=>true,type:"calc",msg:`(${c-b})÷(−${a})=${x0}. 음수로 나눴으니 부등호는 ${dsym[flipped]}!`}]};
   },
+
+  // ===== 이차부등식 (포물선이 0보다 큰/작은 범위) =====
+  // (x-p)(x-q)<0 → p<x<q (포물선이 x축 아래, 안쪽)
+  quadIneqIn(){
+    let p,q;do{p=rnd(-4,3);q=p+rnd(1,4);}while(p===q);
+    return {type:"quiz",figureRaw:drawParabola(p,q,{a:0.5,range_hl:"in"}),
+      q:`<b>(x ${p>=0?'− '+p:'+ '+(-p)})(x ${q>=0?'− '+q:'+ '+(-q)}) < 0</b><br>포물선이 <b>x축보다 아래(0보다 작은)</b>인 x의 범위는? (초록 띠를 봐!)`,
+      opts:shuffle([`${p} < x < ${q}`,`x < ${p} 또는 x > ${q}`,`x < ${q}`,`x > ${p}`]),answer:-1,_ansLabel:`${p} < x < ${q}`,
+      okMsg:`천재! 포물선이 x축 아래인 건 두 점 <b>사이</b> → ${p} < x < ${q} 🎯`,
+      diag:{[`x < ${p} 또는 x > ${q}`]:{type:"concept",msg:`그건 0보다 <b>큰</b>(위) 범위야! < 0은 포물선이 x축 <b>아래</b>로 내려간 안쪽(${p}~${q} 사이)!`}}};
+  },
+  // (x-p)(x-q)>0 → x<p 또는 x>q (바깥쪽)
+  quadIneqOut(){
+    let p,q;do{p=rnd(-4,3);q=p+rnd(1,4);}while(p===q);
+    return {type:"quiz",figureRaw:drawParabola(p,q,{a:0.5,range_hl:"out"}),
+      q:`<b>(x ${p>=0?'− '+p:'+ '+(-p)})(x ${q>=0?'− '+q:'+ '+(-q)}) > 0</b><br>포물선이 <b>x축보다 위(0보다 큰)</b>인 x의 범위는? (보라 띠를 봐!)`,
+      opts:shuffle([`x < ${p} 또는 x > ${q}`,`${p} < x < ${q}`,`x > ${q}`,`x < ${p}`]),answer:-1,_ansLabel:`x < ${p} 또는 x > ${q}`,
+      okMsg:`최고! 포물선이 x축 위인 건 두 점 <b>바깥</b> → x < ${p} 또는 x > ${q} 🔥`,
+      diag:{[`${p} < x < ${q}`]:{type:"concept",msg:`그건 0보다 <b>작은</b>(아래) 안쪽이야! > 0은 포물선이 x축 <b>위</b>로 올라간 바깥쪽 두 군데!`}}};
+  },
+  // 실생활: 공 던지기 (높이>0인 시간)
+  quadIneqReal(){
+    const q=rnd(3,6); // 0~q초 동안 공중에
+    return {type:"input",q:`🎾 공을 던졌더니 높이 h = x(${q}−x) (x는 초). 공이 <b>공중에 있는(높이>0)</b> 건 0초부터 몇 초까지일까?<br>(높이가 0이 되는 두 순간: x=0, x=${q})`,answer:q,
+      okMsg:`맞아! x=0에 던져서 x=${q}초에 떨어져 → ${q}초까지 공중에! 🎾`,
+      wrongHints:[
+        {test:v=>v===0,type:"read",msg:`0초는 던진 순간! 떨어지는 순간(높이 다시 0)을 찾아. x(${q}−x)=0의 다른 해는 ${q}.`},
+        {test:()=>true,type:"concept",msg:`높이가 0인 두 순간이 0초와 ${q}초. 그 사이엔 높이>0(공중)! 답은 ${q}.`}]};
+  },
 };
 
 
@@ -1980,6 +2161,33 @@ const GROUPS=[
        <div class="eqbox">−3x + 1 > 7<br>→ −3x > 6 (1 빼기)<br>→ x < −2 (−3으로 나누기, 뒤집힘!)</div>`,
        tip:"<b>마지막에 음수로 나누면 꼭 뒤집기!</b>"},
       {gen:"flipSolve",repeat:4},
+     ]},
+  ]},
+  {title:"🌟 고등 도전 (이차부등식)",bonus:true,countries:[
+    {flag:"🟢",lv:"고등 1 · 안쪽",name:"포물선 골짜기",bonus:true,desc:"포물선이 0보다 작은 범위 [종합 정복 봉우리 졸업 후]",
+     steps:[
+      {type:"teach",step:"이차부등식이란?",title:"포물선과 0의 비교",
+       html:`<p>이차부등식은 <b>포물선이 x축(0)보다 위냐 아래냐</b>를 묻는 거야!</p>
+       <p><b>(x−p)(x−q) < 0</b> → 포물선이 <b>x축 아래로 내려간</b> 부분 → 두 점 <b>사이</b>(p~q)!</p>
+       <p>🎢 비유: 포물선은 골짜기 모양. 바닥(x축 아래)에 있는 구간이 답이야.</p>`,
+       tip:"<b>< 0 (아래) → 두 점 사이! 안쪽!</b>"},
+      {gen:"quadIneqIn",repeat:3},
+     ]},
+    {flag:"🔴",lv:"고등 2 · 바깥쪽",name:"양 끝의 봉우리",bonus:true,desc:"포물선이 0보다 큰 범위",
+     steps:[
+      {type:"teach",step:"반대 경우",title:"x축 위 = 바깥쪽",
+       html:`<p><b>(x−p)(x−q) > 0</b> → 포물선이 <b>x축 위로 올라간</b> 부분 → 두 점 <b>바깥</b>(x<p 또는 x>q)!</p>
+       <p>아래(<0)는 안쪽 한 군데, 위(>0)는 바깥 두 군데. 그래프를 보면 헷갈리지 않아 🔍</p>`,
+       tip:"<b>> 0 (위) → 두 점 바깥! 양쪽 두 군데!</b>"},
+      {gen:"quadIneqOut",repeat:3},
+     ]},
+    {flag:"🎾",lv:"고등 3 · 실전",name:"공 던지기 성",bonus:true,desc:"실생활 이차부등식 (높이>0인 시간)",
+     steps:[
+      {type:"teach",step:"실생활 응용",title:"공이 공중에 있는 시간",
+       html:`<p>공을 던지면 높이가 포물선을 그려! <b>높이 > 0</b>(공중에 떠 있는) 시간을 구하는 게 이차부등식이야.</p>
+       <p>높이가 0이 되는 두 순간(던진 때, 떨어진 때) <b>사이</b>가 공중에 있는 시간! 🎾</p>`,
+       tip:"<b>높이=0인 두 순간 사이 = 공중에 있는 시간!</b>"},
+      {gen:"quadIneqReal",repeat:3},
      ]},
   ]},
   {title:"🏯 비밀의 도전 성 (보너스)",bonus:true,countries:[
@@ -2191,7 +2399,6 @@ const game={
 window.GAMES["ineq"] = {
   start:function(){ window.game=game; document.documentElement.style.setProperty('--shape','#C77DC4'); document.body.style.background="radial-gradient(circle at 15% 12%, #F0D6F0 0 60px, transparent 61px),linear-gradient(160deg,#E8C4E8 0%, #F5E2F5 40%, #FFF8EC 100%)"; game.selectUser('eunhye'); },
   progress:function(){ try{ var p=loadProgress('eunhye'); return {cleared:(p.clearedCountry+1),total:COUNTRIES.length,stars:p.stars||0}; }catch(e){ return {cleared:0,total:0,stars:0}; } },
-  resetProgress:function(){ try{ localStorage.removeItem("ineq"+"placeholder"); }catch(e){} },
   _game:game
 };
 })();
@@ -2558,7 +2765,6 @@ const game={
 window.GAMES["pow"] = {
   start:function(){ window.game=game; document.documentElement.style.setProperty('--shape','#E9B949'); document.body.style.background="radial-gradient(circle at 15% 12%, #FFEEB8 0 60px, transparent 61px),linear-gradient(160deg,#FFE699 0%, #FFF6D6 40%, #FFF8EC 100%)"; game.selectUser('eunhye'); },
   progress:function(){ try{ var p=loadProgress('eunhye'); return {cleared:(p.clearedCountry+1),total:COUNTRIES.length,stars:p.stars||0}; }catch(e){ return {cleared:0,total:0,stars:0}; } },
-  resetProgress:function(){ try{ localStorage.removeItem("pow"+"placeholder"); }catch(e){} },
   _game:game
 };
 })();
@@ -2961,7 +3167,6 @@ const game={
 window.GAMES["frac"] = {
   start:function(){ window.game=game; document.documentElement.style.setProperty('--shape','#E8916B'); document.body.style.background="radial-gradient(circle at 15% 12%, #FFE0C7 0 60px, transparent 61px),linear-gradient(160deg,#FFD3B6 0%, #FFEEDD 40%, #FFF8EC 100%)"; game.selectUser('eunhye'); },
   progress:function(){ try{ var p=loadProgress('eunhye'); return {cleared:(p.clearedCountry+1),total:COUNTRIES.length,stars:p.stars||0}; }catch(e){ return {cleared:0,total:0,stars:0}; } },
-  resetProgress:function(){ try{ localStorage.removeItem("frac"+"placeholder"); }catch(e){} },
   _game:game
 };
 })();
@@ -3379,7 +3584,6 @@ const game={
 window.GAMES["dec"] = {
   start:function(){ window.game=game; document.documentElement.style.setProperty('--shape','#5BB89A'); document.body.style.background="radial-gradient(circle at 15% 12%, #C4ECDC 0 60px, transparent 61px),linear-gradient(160deg,#A8E0C8 0%, #DCF5EC 40%, #FFF8EC 100%)"; game.selectUser('eunhye'); },
   progress:function(){ try{ var p=loadProgress('eunhye'); return {cleared:(p.clearedCountry+1),total:COUNTRIES.length,stars:p.stars||0}; }catch(e){ return {cleared:0,total:0,stars:0}; } },
-  resetProgress:function(){ try{ localStorage.removeItem("decimal"+"placeholder"); }catch(e){} },
   _game:game
 };
 })();
@@ -3762,7 +3966,6 @@ const game={
 window.GAMES["big"] = {
   start:function(){ window.game=game; document.documentElement.style.setProperty('--shape','#3A8FC4'); document.body.style.background="radial-gradient(circle at 15% 12%, #BEE3F2 0 60px, transparent 61px),linear-gradient(160deg,#A8D5E8 0%, #DCF0F8 40%, #FFF8EC 100%)"; game.selectUser('eunhye'); },
   progress:function(){ try{ var p=loadProgress('eunhye'); return {cleared:(p.clearedCountry+1),total:COUNTRIES.length,stars:p.stars||0}; }catch(e){ return {cleared:0,total:0,stars:0}; } },
-  resetProgress:function(){ try{ localStorage.removeItem("bignum"+"placeholder"); }catch(e){} },
   _game:game
 };
 })();
@@ -4253,7 +4456,6 @@ const game={
 window.GAMES["geo"] = {
   start:function(){ window.game=game; document.documentElement.style.setProperty('--shape','#6C7BD6'); document.body.style.background="radial-gradient(circle at 15% 12%, #D6DBF5 0 60px, transparent 61px),linear-gradient(160deg,#BAC4F0 0%, #E2E6F8 40%, #FFF8EC 100%)"; game.selectUser('eunhye'); },
   progress:function(){ try{ var p=loadProgress('eunhye'); return {cleared:(p.clearedCountry+1),total:COUNTRIES.length,stars:p.stars||0}; }catch(e){ return {cleared:0,total:0,stars:0}; } },
-  resetProgress:function(){ try{ localStorage.removeItem("geo"+"placeholder"); }catch(e){} },
   _game:game
 };
 })();
@@ -4788,7 +4990,6 @@ const game={
 window.GAMES["graph"] = {
   start:function(){ window.game=game; document.documentElement.style.setProperty('--shape','#7C9CE8'); document.body.style.background="radial-gradient(circle at 15% 12%, #D6DBF5 0 60px, transparent 61px),linear-gradient(160deg,#BAC4F0 0%, #E2E6F8 40%, #FFF8EC 100%)"; game.selectUser('eunhye'); },
   progress:function(){ try{ var p=loadProgress('eunhye'); return {cleared:(p.clearedCountry+1),total:COUNTRIES.length,stars:p.stars||0}; }catch(e){ return {cleared:0,total:0,stars:0}; } },
-  resetProgress:function(){ try{ localStorage.removeItem("graph"+"placeholder"); }catch(e){} },
   _game:game
 };
 })();
@@ -4805,6 +5006,7 @@ const HUB_GAMES=[
   {id:"big",  name:"큰 수",    icon:"🔢", desc:"자릿값부터 지수 표기까지", color:"#3A8FC4"},
   {id:"geo",  name:"도형",     icon:"📐", desc:"각도·삼각형·다각형", color:"#6C7BD6"},
   {id:"graph",name:"그래프",   icon:"📊", desc:"막대·꺾은선 읽고 해석·서술형", color:"#7C9CE8"},
+  {id:"gexplore",name:"그래프 탐험", icon:"🧭", desc:"움직이는 그래프로 직접 노는 탐험 코너", color:"#9d7bff", link:"graph-explore.html"},
 ];
 // 과목별 저장키 (진도 초기화용)
 const SAVE_KEYS={"eq": "eqgame_v3_", "func": "funcgame_v1_", "ineq": "ineqgame_v1_", "pow": "powgame_v1_", "frac": "fracgame_v1_", "dec": "decimalgame_v1_", "big": "bignumgame_v1_", "geo": "geogame_v1_", "graph": "graphgame_v1_"};
@@ -4824,7 +5026,28 @@ window.HUB = {
   renderMenu(){
     var ht=document.getElementById('hubTitle'); if(ht) ht.textContent=window.getPlayerName()+"의 수학 세계여행";
     const grid=document.getElementById('subjectGrid');grid.innerHTML="";
-    HUB_GAMES.forEach(g=>{
+    const hidden=this.getHidden();
+    const visible=HUB_GAMES.filter(g=>hidden.indexOf(g.id)<0);
+    if(visible.length===0){
+      grid.innerHTML='<div style="background:#fff;border:3px dashed var(--line);border-radius:18px;padding:22px;text-align:center;color:var(--ink-soft);font-weight:700;line-height:1.6">모든 과목이 숨겨져 있어요 🙈<br>오른쪽 위 ⚙️ 설정에서 다시 표시할 수 있어요.</div>';
+    }
+    visible.forEach(g=>{
+      if(g.link){
+        const lc=document.createElement('div');
+        lc.className='subject-card';
+        lc.style.borderColor=g.color;
+        lc.onclick=()=>{ window.location.href=g.link; };
+        lc.innerHTML=`
+          <div class="subj-icon" style="background:${g.color}22">${g.icon}</div>
+          <div class="subj-info">
+            <div class="subj-name">${g.name} <span class="crown">✨</span></div>
+            <div class="subj-desc">${g.desc}</div>
+            <div class="subj-stat">눌러서 그래프 놀이 시작 →</div>
+          </div>
+          <div class="subj-go" style="color:${g.color}">▶</div>`;
+        grid.appendChild(lc);
+        return;
+      }
       let pr={cleared:0,total:0,stars:0};
       try{ pr=window.GAMES[g.id].progress(); }catch(e){}
       const done = pr.total>0 && pr.cleared>=pr.total;
@@ -4846,9 +5069,10 @@ window.HUB = {
     });
     // 전체 요약
     let totC=0,totN=0,totS=0;
-    HUB_GAMES.forEach(g=>{try{const p=window.GAMES[g.id].progress();totC+=p.cleared;totN+=p.total;totS+=p.stars;}catch(e){}});
+    visible.forEach(g=>{if(g.link)return;try{const p=window.GAMES[g.id].progress();totC+=p.cleared;totN+=p.total;totS+=p.stars;}catch(e){}});
+    const hiddenCnt=HUB_GAMES.length-visible.length;
     document.getElementById('hubSummary').innerHTML=
-      `전체 진도: <b>${totC}/${totN}</b> 나라 정복 · 모은 별 <b>⭐${totS}</b>`;
+      `전체 진도: <b>${totC}/${totN}</b> 나라 정복 · 모은 별 <b>⭐${totS}</b>`+(hiddenCnt>0?` · 숨긴 과목 ${hiddenCnt}개`:``);
   },
   enter(gid){
     document.getElementById('hubMenu').classList.remove('on');
@@ -4866,6 +5090,7 @@ window.HUB = {
     document.getElementById('topbar').style.display='none';
     document.getElementById('settingsScreen').classList.add('on');
     document.getElementById('setNameInput').value=window.getPlayerName();
+    this.renderVisibilityList();
     this.renderResetList();
     window.scrollTo({top:0,behavior:'smooth'});
   },
@@ -4875,9 +5100,32 @@ window.HUB = {
     try{ localStorage.setItem('player_name', v); }catch(e){}
     this.showMenu();
   },
+  getHidden(){ try{ return JSON.parse(localStorage.getItem('hidden_subjects')||'[]')||[]; }catch(e){ return []; } },
+  toggleHidden(gid){
+    var h=this.getHidden(); var i=h.indexOf(gid);
+    if(i>=0) h.splice(i,1); else h.push(gid);
+    try{ localStorage.setItem('hidden_subjects', JSON.stringify(h)); }catch(e){}
+    this.renderVisibilityList();
+  },
+  renderVisibilityList(){
+    var wrap=document.getElementById('visList'); if(!wrap) return; wrap.innerHTML="";
+    var hidden=this.getHidden();
+    HUB_GAMES.forEach(function(g){
+      var isHidden=hidden.indexOf(g.id)>=0;
+      var row=document.createElement('div');row.className='reset-row';
+      row.innerHTML='<div><div class="rname">'+g.icon+' '+g.name+'</div>'
+        +'<div class="rprog">'+(isHidden?'메뉴에서 숨김':'메뉴에 표시 중')+'</div></div>';
+      var btn=document.createElement('button');
+      btn.className='vis-btn'+(isHidden?' off':'');
+      btn.textContent=isHidden?'🙈 숨김':'👁️ 표시';
+      btn.onclick=function(){ window.HUB.toggleHidden(g.id); };
+      row.appendChild(btn);wrap.appendChild(row);
+    });
+  },
   renderResetList(){
     var wrap=document.getElementById('resetList');wrap.innerHTML="";
     HUB_GAMES.forEach(function(g){
+      if(g.link) return;
       var pr={cleared:0,total:0,stars:0};
       try{ pr=window.GAMES[g.id].progress(); }catch(e){}
       var row=document.createElement('div');row.className='reset-row';

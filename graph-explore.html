@@ -1,0 +1,945 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>은혜의 그래프 탐험</title>
+<script src="https://cdn.plot.ly/plotly-2.27.0.min.js"></script>
+<style>
+  :root{
+    --bg:#fffdf7; --ink:#2d2a26; --soft:#6b6256;
+    --pink:#ff7eb6; --blue:#4f9dff; --green:#43c59e; --yellow:#ffc94d;
+    --purple:#9d7bff; --line:#ece6d8; --card:#ffffff;
+  }
+  *{box-sizing:border-box;margin:0;padding:0;}
+  body{
+    font-family:'Segoe UI','Apple SD Gothic Neo','Malgun Gothic',sans-serif;
+    background:
+      radial-gradient(circle at 12% 8%, #ffe9f3 0, transparent 40%),
+      radial-gradient(circle at 88% 12%, #e6f3ff 0, transparent 40%),
+      var(--bg);
+    color:var(--ink); line-height:1.7;
+  }
+  .hero{
+    text-align:center; padding:46px 20px 30px;
+  }
+  .hero .star{font-size:34px;}
+  .hero h1{
+    font-size:34px; letter-spacing:-1px; margin:6px 0;
+    background:linear-gradient(90deg,var(--pink),var(--purple),var(--blue));
+    -webkit-background-clip:text; background-clip:text; color:transparent;
+  }
+  .hero p{color:var(--soft); font-size:16px;}
+  .map{
+    max-width:760px; margin:10px auto 0; display:flex; flex-wrap:wrap; gap:8px; justify-content:center;
+  }
+  .map a{
+    font-size:14px; text-decoration:none; color:var(--ink);
+    background:#fff; border:2px solid var(--line); border-radius:20px; padding:8px 14px;
+  }
+  .map a:hover{border-color:var(--purple); color:var(--purple);}
+
+  section{
+    max-width:820px; margin:30px auto; background:var(--card);
+    border:2px solid var(--line); border-radius:22px; padding:30px 32px;
+    box-shadow:0 8px 30px rgba(120,100,80,.06);
+  }
+  .step-tag{
+    display:inline-block; font-size:13px; font-weight:700; color:#fff;
+    padding:5px 14px; border-radius:14px; margin-bottom:10px;
+  }
+  h2{font-size:25px; letter-spacing:-.5px; margin-bottom:6px;}
+  h2 .emoji{margin-right:6px;}
+  .lead{color:var(--soft); margin-bottom:18px;}
+  p.exp{margin:12px 0;}
+  .word{
+    background:#fbf6ff; border-left:5px solid var(--purple);
+    border-radius:0 12px 12px 0; padding:12px 16px; margin:16px 0; font-size:15px;
+  }
+  .word b{color:var(--purple);}
+  .word .tag{display:inline-block; font-size:11px; background:var(--purple); color:#fff; padding:1px 8px; border-radius:10px; margin-right:6px; vertical-align:middle;}
+  .tip{
+    background:#fffaf0; border-left:5px solid var(--yellow);
+    border-radius:0 12px 12px 0; padding:12px 16px; margin:16px 0; font-size:15px;
+  }
+  canvas{background:#fff; border:2px solid var(--line); border-radius:14px; display:block; margin:14px auto; max-width:100%; touch-action:none;}
+  .btnrow{display:flex; flex-wrap:wrap; gap:10px; justify-content:center; margin:14px 0;}
+  button.play{
+    font-family:inherit; font-size:15px; font-weight:700; cursor:pointer;
+    border:none; border-radius:14px; padding:11px 20px; color:#fff;
+  }
+  .bp{background:var(--pink);} .bb{background:var(--blue);} .bg{background:var(--green);}
+  .by{background:var(--yellow); color:#5a4a10;} .bv{background:var(--purple);}
+  .ghost{background:#fff; border:2px solid var(--line); color:var(--ink);}
+  .readout{
+    text-align:center; font-family:'Courier New',monospace; font-size:16px;
+    background:#f6f8fb; border-radius:12px; padding:10px; margin:10px auto; max-width:520px; min-height:46px;
+  }
+  .step-table{width:100%; border-collapse:collapse; margin:12px 0; font-size:15px;}
+  .step-table td{padding:9px 12px; border-bottom:1px dashed var(--line);}
+  .step-table .num{width:34px; text-align:center; font-weight:700; color:var(--blue);}
+  .reveal{opacity:.25; transition:opacity .4s;}
+  .reveal.show{opacity:1;}
+  .pillbar{display:flex; gap:8px; flex-wrap:wrap; justify-content:center; margin:10px 0;}
+  .pillbar button{
+    font-family:inherit; font-size:15px; cursor:pointer; background:#fff;
+    border:2px solid var(--line); border-radius:20px; padding:11px 16px;
+  }
+  .pillbar button.on{background:var(--green); color:#fff; border-color:var(--green);}
+  #plot3d{width:100%; height:460px; margin-top:6px; overflow:hidden; border:1px solid var(--line); border-radius:12px;}
+  .quiz{background:#f0fbf6; border:2px solid #c8efe0; border-radius:14px; padding:16px; margin-top:14px;}
+  .quiz .opt{display:inline-block; margin:6px 6px 0 0; cursor:pointer; background:#fff; border:2px solid var(--line); border-radius:12px; padding:11px 18px; font-size:15px;}
+  .quiz .opt:hover{border-color:var(--green);}
+  .quiz .res{margin-top:10px; font-weight:700; min-height:24px;}
+  footer{text-align:center; color:var(--soft); font-size:13px; padding:30px;}
+  .smallnote{font-size:13px; color:var(--soft); text-align:center;}
+  .makeeq{background:#f3f8ff; border:2px solid #d6e6ff; border-radius:14px; padding:16px; margin:12px 0;}
+  .eqtext{font-size:26px; font-family:'Courier New',monospace; font-weight:700; display:block; text-align:center; margin-bottom:12px;}
+  .blank{display:inline-block; min-width:46px; padding:2px 8px; background:#fff; border:2px dashed var(--blue); border-radius:8px; color:var(--blue);}
+  .blank.done{border-style:solid; border-color:var(--green); color:var(--green); background:#eafff5;}
+  .choices{display:flex; flex-wrap:wrap; gap:8px; justify-content:center; margin:6px 0;}
+  .choices button{font-family:inherit; font-size:15px; cursor:pointer; background:#fff; border:2px solid var(--line); border-radius:12px; padding:11px 18px;}
+  .choices button:hover{border-color:var(--blue);}
+  .choices button.right{background:var(--green); color:#fff; border-color:var(--green);}
+  .choices button.wrong{background:#ffe6e6; border-color:#ffb3b3;}
+  .eqres{text-align:center; font-weight:700; min-height:24px; margin-top:6px;}
+  .slider-row{display:flex; align-items:center; gap:12px; margin:12px 0;}
+  .slider-label{font-weight:700; font-size:14px; width:80px; flex:none;}
+  .slider-row input[type=range]{flex:1; height:8px; accent-color:var(--purple); cursor:pointer;}
+  .slider-num{font-family:'Courier New',monospace; font-weight:700; font-size:18px; width:48px; text-align:center; flex:none; background:#fff; border:2px solid var(--line); border-radius:8px;}
+</style>
+</head>
+<body>
+
+<a href="index.html" style="position:sticky;top:0;z-index:50;display:block;background:#9d7bff;color:#fff;text-align:center;padding:11px;font-weight:800;font-size:15px;text-decoration:none;box-shadow:0 2px 8px rgba(120,100,80,.15)">← 수학 세계여행 메뉴로 돌아가기</a>
+
+<div class="hero">
+  <div class="star">🌟✨🌟</div>
+  <h1>은혜의 그래프 탐험</h1>
+  <p>점 하나에서 시작해서, 멋진 곡선까지! 천천히 같이 가보자 😊</p>
+  <div class="map">
+    <a href="#s1">1. 모눈종이와 좌표</a>
+    <a href="#s2">2. 규칙이 그래프가 돼</a>
+    <a href="#s25">2½. 답이 여러 개?</a>
+    <a href="#s3">3. 조건 두 개로 답 찾기</a>
+    <a href="#s4">4. 휘어지는 곡선 (2차)</a>
+    <a href="#s5">5. 구불구불 곡선 (3차)</a>
+    <a href="#s6">6. 자유 놀이터</a>
+  </div>
+</div>
+
+<!-- STEP 1 -->
+<section id="s1">
+  <span class="step-tag" style="background:var(--pink)">STEP 1</span>
+  <h2><span class="emoji">📍</span>모눈종이와 좌표</h2>
+  <p class="lead">'좌표'는 점이 어디 있는지 알려주는 <b>주소</b>야.</p>
+  <p class="exp">모눈종이엔 가로줄과 세로줄이 있어.<br>
+  • 가로 길 = <b style="color:var(--blue)">x</b><br>
+  • 세로 길 = <b style="color:var(--pink)">y</b><br>
+  점은 <b>(가로 칸, 세로 칸)</b>으로 말해.<br>
+  예) <b>(3, 2)</b> → 오른쪽 3칸, 위로 2칸! 🎯</p>
+  <div class="tip">👉 아래 모눈종이를 <b>손가락이나 마우스로 톡 눌러봐.</b> 네가 찍은 점의 주소가 뭔지 알려줄게!</div>
+  <canvas id="cv1" width="500" height="500"></canvas>
+  <div class="readout" id="out1">모눈종이를 눌러서 점을 찍어보자!</div>
+  <div class="word">
+    <span class="tag">조금 더!</span>
+    <b>좌표</b> = 자리를 표시한 것. 영어로는 <b>coordinates</b>(코오디네이츠).
+  </div>
+</section>
+
+<!-- STEP 2 -->
+<section id="s2">
+  <span class="step-tag" style="background:var(--blue)">STEP 2</span>
+  <h2><span class="emoji">✏️</span>규칙이 그래프가 돼</h2>
+  <p class="lead">그래프는 사실, <b>규칙을 지키는 점들이 모인 것</b>이야.</p>
+  <p class="exp">규칙 하나를 보자: <b style="color:var(--blue)">y = 2x + 1</b><br>
+  뜻은 "<b>x를 2배 하고, 1 더하기</b>"!<br>
+  x에 숫자를 하나씩 넣어볼까?</p>
+  <table class="step-table">
+    <tr><td class="num">x=0</td><td>y = 2×0 + 1 = <b>1</b> → 점 (0, 1)</td></tr>
+    <tr><td class="num">x=1</td><td>y = 2×1 + 1 = <b>3</b> → 점 (1, 3)</td></tr>
+    <tr><td class="num">x=2</td><td>y = 2×2 + 1 = <b>5</b> → 점 (2, 5)</td></tr>
+  </table>
+  <p class="exp">이 점들을 쭉 이으면? <b>선</b>이 돼!<br>
+  아래 버튼을 누르면 점이 하나씩 찍혀.</p>
+  <div class="btnrow">
+    <button class="play bb" onclick="step2Next()">➕ 다음 x 넣어보기</button>
+    <button class="play ghost" onclick="step2Reset()">↺ 다시</button>
+    <button class="play bg" onclick="step2Line()">📈 점들 잇기</button>
+  </div>
+  <canvas id="cv2" width="500" height="500"></canvas>
+  <div class="readout" id="out2">버튼을 눌러 x = 0 부터 넣어보자!</div>
+  <div class="word">
+    <span class="tag">조금 더!</span>
+    x를 넣으면 y가 딱 하나 나오는 규칙 → 중학교에서 <b>함수</b>라고 배워. "숫자를 넣으면 답이 나오는 상자" 📦 (영어로 <b>function</b>).
+  </div>
+
+  <hr style="border:none;border-top:2px dashed var(--line);margin:26px 0">
+
+  <h2 style="font-size:21px"><span class="emoji">🔑</span>직선 그래프의 비밀번호 2개</h2>
+  <p class="exp">그래프를 식으로 쓰면 <b style="color:var(--blue)">y = 2x + 2</b> 처럼 "<b>y = ○○○</b>" 모양이 돼.<br>
+  x를 넣으면 y가 나오는 거지.</p>
+  <p class="exp">놀라운 사실! 직선은 딱 <b>2가지</b>만 알면 그릴 수 있어.<br>
+  • <b style="color:var(--pink)">기울기</b><br>
+  • <b style="color:var(--green)">y절편</b><br>
+  하나씩 만져보자 👇</p>
+
+  <div class="makeeq" style="background:#fff5f9;border-color:#ffd6e6">
+    <p class="exp" style="margin-top:0"><b style="color:var(--pink)">① 기울기</b> = 선이 <b>얼마나 가파른지</b>.<br>
+    y = <span id="slopeVal" style="color:var(--pink);font-weight:700">2</span>x 의 기울기를 바꿔봐:</p>
+    <div class="pillbar" id="slopePills"></div>
+    <canvas id="cvSlope" width="460" height="460"></canvas>
+    <div class="readout" id="slopeOut">버튼을 눌러 기울기를 바꿔봐!</div>
+    <div class="tip" style="margin-bottom:0">📐 기울기 규칙!<br>
+    • <b>+</b> → 오른쪽 위로 ↗<br>
+    • <b>−</b> → 오른쪽 아래로 ↘<br>
+    • 숫자 클수록 가팔라져 🚀<br>
+    • <b>½</b>처럼 작으면 천천히 🐌<br>
+    • <b>0</b>이면 납작한 가로선</div>
+  </div>
+
+  <div class="makeeq" style="background:#f0fbf6;border-color:#c8efe0">
+    <p class="exp" style="margin-top:0"><b style="color:var(--green)">② y절편</b> = 선이 <b>세로축과 만나는 높이</b>.<br>
+    (x=0일 때의 y값이야.)<br>
+    y = 1x + <span id="bVal" style="color:var(--green);font-weight:700">0</span> 의 절편을 바꿔봐:</p>
+    <div class="pillbar" id="bPills"></div>
+    <canvas id="cvB" width="460" height="460"></canvas>
+    <div class="readout" id="bOut">버튼을 눌러 y절편을 바꿔봐!</div>
+    <div class="tip" style="margin-bottom:0">🎯 선이 위아래로 <b>통째로</b> 움직이지?<br>
+    • 절편 3 → (0, 3)에서 만나<br>
+    • 절편 −2 → (0, −2)에서 만나<br>
+    가로축과 만나는 곳은 <b>x절편</b>이라고 해!</div>
+  </div>
+
+  <div class="word">
+    <span class="tag">조금 더!</span>
+    <b>기울기</b> = 영어로 <b>slope</b>(슬로프).<br>
+    <b>절편</b> = 축을 <b>끊고 지나가는 자리</b>. y축을 끊으면 y절편, x축을 끊으면 x절편!
+  </div>
+
+  <p class="exp">🎮 <b>이제 게임!</b><br>
+  기울기랑 y절편을 알면 식만 보고 그래프를 찾을 수 있어.<br>
+  아래 식에 맞는 그래프를 골라봐!</p>
+  <div id="matchGame"></div>
+  <div class="readout" id="matchOut" style="font-weight:700">위 식에 맞는 그래프 번호를 눌러봐!</div>
+  <div class="tip" id="matchCheer" style="display:none">🏆 <b>대단해 은혜!</b><br>
+  이제 식만 봐도 그래프가 머릿속에 그려지지?<br>
+  어려운 문제도 답이 어디 있는지 눈에 보여. 진짜 강력한 <b>무기</b>가 생긴 거야! 😎✨</div>
+
+  <hr style="border:none;border-top:2px dashed var(--line);margin:26px 0">
+
+  <h2 style="font-size:21px"><span class="emoji">🎛️</span>나만의 직선 만들기 놀이판</h2>
+  <p class="exp">이제 기울기랑 y절편을 <b>동시에</b> 움직여봐!<br>
+  손잡이를 좌우로 끌면 세상 모든 직선을 만들 수 있어.</p>
+  <div class="makeeq" style="background:#faf7ff;border-color:#e0d6ff">
+    <div class="readout" id="playEq" style="font-size:26px;color:var(--purple)">y = 1x + 0</div>
+    <div class="slider-row">
+      <span class="slider-label" style="color:var(--pink)">기울기 (a)</span>
+      <input type="range" id="slA" min="-4" max="4" step="0.5" value="1">
+      <span class="slider-num" id="slAnum">1</span>
+    </div>
+    <div class="slider-row">
+      <span class="slider-label" style="color:var(--green)">y절편 (b)</span>
+      <input type="range" id="slB" min="-4" max="4" step="1" value="0">
+      <span class="slider-num" id="slBnum">0</span>
+    </div>
+    <canvas id="cvPlay" width="460" height="460"></canvas>
+    <div class="readout" id="playOut" style="margin-bottom:0">손잡이를 움직여봐! 빨간 점은 y절편, 파란 점은 x=1일 때의 위치야.</div>
+  </div>
+  <div class="tip">💡 두 손잡이로 무엇이든 만들 수 있어!<br>
+  • 기울기(a) → <b>방향·가파름</b><br>
+  • y절편(b) → <b>높이</b><br>
+  이게 직선의 전부야!</div>
+</section>
+
+<!-- STEP 2.5 : 미지수 2개 워밍업 -->
+<section id="s25">
+  <span class="step-tag" style="background:var(--blue)">STEP 2 ½</span>
+  <h2><span class="emoji">🧩</span>답이 여러 개일 수도 있어?</h2>
+  <p class="lead">지금까지 푼 문제는 답이 하나였지? 그런데 이런 문제는 좀 달라.</p>
+  <p class="exp">은혜가 <b>젤리(x개)</b>랑 <b>사탕(y개)</b>을 샀어.<br>
+  둘을 <b>합쳐서 5개</b>! 식으로 쓰면:</p>
+  <div class="readout" style="font-size:20px"><b style="color:var(--blue)">x + y = 5</b></div>
+  <p class="exp">x랑 y는 아직 <b>모르는 수 두 개</b>야.<br>
+  젤리랑 사탕이 각각 몇 개일까? 아래 버튼으로 맞춰보자!</p>
+  <div class="pillbar" id="pills25"></div>
+  <div class="readout" id="out25">젤리 개수를 골라봐!</div>
+  <div class="tip">🤔 봤지? <b>(0,5) (1,4) (2,3) (3,2)...</b><br>
+  답이 <b>여러 개</b>야!<br>
+  조건이 하나뿐이라 딱 하나로 못 정해. 모르는 수가 2개라서 그래.</div>
+  <div class="word">
+    <span class="tag">조금 더!</span>
+    모르는 수가 <b>두 개(x, y)</b>인 식 → 중학교에서 <b>미지수가 2개인 방정식</b>이라고 배워.<br>
+    미지수 = <b>아직 모르는 수</b> (영어로 <b>unknown</b>).
+  </div>
+</section>
+
+<!-- STEP 3 : 스토리 기반 -->
+<section id="s3">
+  <span class="step-tag" style="background:var(--green)">STEP 3</span>
+  <h2><span class="emoji">🕵️</span>조건이 하나 더! 딱 정해지는 답 찾기</h2>
+  <p class="lead">답이 여러 개라 답답했지? 그럼 <b>힌트(조건)를 하나 더</b> 받아보자!</p>
+
+  <p class="exp">📖 <b>이야기:</b><br>
+  은혜가 젤리(x)랑 사탕(y)을 <b>합쳐서 5개</b> 샀어.<br>
+  엄마: "젤리가 사탕보다 몇 개 더 많아?"<br>
+  은혜: "<b>1개 더 많아!</b>"</p>
+
+  <div class="tip">🤔 <b>먼저 생각해보기:</b><br>
+  이야기에 중요한 말이 <b>두 개</b> 숨어 있어.<br>
+  ① "합쳐서 5개"<br>
+  ② "젤리가 1개 더 많아"<br>
+  그래서 식도 <b>두 개</b>! 같이 만들어보자.</p>
+
+  <p class="exp">✍️ <b>첫 번째 문장을 식으로:</b><br>
+  "<u>합쳐서 5개</u>" — '합친다'는 <b>더하기</b>겠지?<br>
+  빈칸에 알맞은 걸 골라봐!</p>
+  <div class="makeeq">
+    <span class="eqtext">x <span class="blank" id="b1op">　?　</span> y = 5</span>
+    <div class="choices" id="ch1">
+      <button onclick="pick1(this,'＋',true)">＋ (더하기)</button>
+      <button onclick="pick1(this,'－',false)">－ (빼기)</button>
+      <button onclick="pick1(this,'×',false)">× (곱하기)</button>
+    </div>
+    <div class="eqres" id="r1out"></div>
+  </div>
+
+  <p class="exp">✍️ <b>두 번째 문장을 식으로:</b><br>
+  "<u>1개 더 많아</u>" — 젤리에서 사탕을 빼면 <b>차이</b>가 1!<br>
+  빈칸을 채워봐!</p>
+  <div class="makeeq">
+    <span class="eqtext">x <span class="blank" id="b2op">　?　</span> y = <span class="blank" id="b2num">?</span></span>
+    <div class="choices" id="ch2a">
+      <span style="font-size:13px;color:var(--soft);width:100%;display:block">먼저 가운데 기호:</span>
+      <button onclick="pick2op(this,'－',true)">－ (빼기)</button>
+      <button onclick="pick2op(this,'＋',false)">＋ (더하기)</button>
+    </div>
+    <div class="choices" id="ch2b">
+      <span style="font-size:13px;color:var(--soft);width:100%;display:block">그 다음 오른쪽 숫자:</span>
+      <button onclick="pick2num(this,1,true)">1</button>
+      <button onclick="pick2num(this,5,false)">5</button>
+    </div>
+    <div class="eqres" id="r2out"></div>
+  </div>
+
+  <p class="exp">🎉 두 문장이 식 두 개가 됐어! 정리하면:</p>
+  <table class="step-table">
+    <tr><td class="num">조건1</td><td>합쳐서 5개 →  <b style="color:var(--blue)">x + y = 5</b></td></tr>
+    <tr><td class="num">조건2</td><td>젤리가 1개 더 많아 →  <b style="color:var(--pink)">x − y = 1</b></td></tr>
+  </table>
+  <p class="exp"><b>이제 두 조건을 <u>동시에</u> 만족하는 (젤리, 사탕)을 찾아야 해.</b> 어떻게 찾을까?</p>
+
+  <p class="exp">🐢 <b>방법 ① 무작정 넣어보기</b><br>
+  숫자를 넣어서 둘 다 맞는지 확인! 직접 해볼까?</p>
+  <div class="pillbar" id="pills3guess"></div>
+  <div class="readout" id="out3guess">젤리 개수를 골라서 두 조건이 다 맞는지 확인해봐!</div>
+  <div class="tip">😮‍💨 하나씩 다 넣어보면 너무 귀찮지?<br>
+  숫자가 컸으면 더 오래 걸려.<br>
+  그래서 <b>더 똑똑한 방법</b>이 필요해!</div>
+
+  <p class="exp">🎨 <b>방법 ② 그림으로 보기</b><br>
+  STEP 2처럼 <b>점을 찍어 이으면</b> 선이 돼.</p>
+
+  <p class="exp">그런데 <b>x + y = 5</b>는 점 찍기가 불편해.<br>
+  그래프는 <b>"y = ○○○"</b> 모양이 제일 편하거든.<br>
+  그래서 <b>y만 남겨보자!</b></p>
+
+  <div class="tip">⚖️ <b>비밀 규칙:</b> 식은 <b>양팔저울</b>!<br>
+  왼쪽에 한 건 오른쪽에도 <b>똑같이</b> 해야 균형이 안 깨져.</div>
+
+  <p class="exp">먼저 <b style="color:var(--blue)">x + y = 5</b> 에서 y만 남기기 — 한 줄씩 눌러봐:</p>
+  <table class="step-table">
+    <tr><td class="num">지금</td><td><b>x + y = 5</b>  … 왼쪽에 방해되는 x가 있네. 이걸 없애자!</td></tr>
+    <tr><td class="num">1</td><td class="reveal" data-r="a1">왼쪽의 x를 없애려면? <b>양쪽에서 똑같이 x를 빼!</b> →  x + y <b>− x</b> = 5 <b>− x</b></td></tr>
+    <tr><td class="num">2</td><td class="reveal" data-r="a2">왼쪽은 x − x = 0 이라 사라지고, y만 남아 →  <b style="color:var(--blue)">y = 5 − x</b>  🎉</td></tr>
+  </table>
+  <div class="btnrow">
+    <button class="play bb" onclick="revealA()">🔍 한 줄씩 보기</button>
+    <button class="play ghost" onclick="revealAReset()">↺ 다시</button>
+  </div>
+
+  <p class="exp">같은 방법으로 <b style="color:var(--pink)">x − y = 1</b> 도 y만 남겨보자:</p>
+  <table class="step-table">
+    <tr><td class="num">지금</td><td><b>x − y = 1</b>  … 이번엔 y 앞에 −가 붙어서 좀 까다로워.</td></tr>
+    <tr><td class="num">1</td><td class="reveal" data-r="c1"><b>양쪽에서 똑같이 x를 빼면</b> →  − y = 1 − x</td></tr>
+    <tr><td class="num">2</td><td class="reveal" data-r="c2">아직 y 앞에 −가 있네. <b>양쪽에 똑같이 −1을 곱하면</b> 부호가 뒤집혀 →  <b style="color:var(--pink)">y = x − 1</b>  🎉</td></tr>
+  </table>
+  <div class="btnrow">
+    <button class="play bp" onclick="revealC()">🔍 한 줄씩 보기</button>
+    <button class="play ghost" onclick="revealCReset()">↺ 다시</button>
+  </div>
+
+  <p class="exp">이제 STEP 2처럼 x에 숫자를 넣어 점을 찍어보자! 먼저 <b style="color:var(--blue)">파란 선 (y = 5 − x)</b>:</p>
+  <div class="pillbar" id="pills3a"></div>
+  <div class="btnrow"><button class="play bb" onclick="s3lineA()">📈 파란 점들 잇기</button></div>
+
+  <p class="exp">다음은 <b style="color:var(--pink)">분홍 선 (y = x − 1)</b>:</p>
+  <div class="pillbar" id="pills3b"></div>
+  <div class="btnrow">
+    <button class="play bp" onclick="s3lineB()">📈 분홍 점들 잇기</button>
+    <button class="play by" onclick="s3showCross()">🎯 답은 어디?</button>
+    <button class="play ghost" onclick="s3reset()">↺ 다시</button>
+  </div>
+  <canvas id="cv3" width="500" height="500"></canvas>
+  <div class="readout" id="out3">위 숫자 버튼으로 점을 찍어보자!</div>
+  <div class="tip">💡 • <b>파란 선</b> = "합쳐서 5개"인 답들<br>
+  • <b>분홍 선</b> = "1개 더 많은" 답들<br>
+  <b>두 조건을 다 만족하는 답</b>은?<br>
+  두 선이 <b>만나는 딱 한 점</b>이야! 🎯</div>
+  <div class="word">
+    <span class="tag">조금 더!</span>
+    양쪽에 똑같이 더하거나 빼서 글자를 옮기는 걸 → 중학교에서 <b>이항</b>이라고 배워.<br>
+    "넘기면 부호가 바뀐다"고 외우지만, 사실은 <b>양팔저울처럼 양쪽에 똑같이 한 것</b>이야! (영어로 <b>transposition</b>)
+  </div>
+
+  <p class="exp">✏️ <b>방법 ③ 계산으로 깔끔하게</b> — 그림으로 감을 잡았으니, 계산으로도 확인해보자.</p>
+
+  <div class="tip">⚖️ <b>"두 식을 더해도 돼?"</b><br>
+  <b>x − y = 1</b> 은 "x−y 랑 1 이 같다"는 뜻이야.<br>
+  그러니까…<br>
+  • 왼쪽에 <b>(x−y)</b> 더하기<br>
+  • 오른쪽에 <b>1</b> 더하기<br>
+  → 사실 <b>양쪽에 똑같은 값</b>을 더한 거지! ⚖️<br>
+  그래서 균형이 안 깨지고 답도 맞아.</div>
+
+  <p class="exp">자, 그럼 한 줄씩 눌러봐:</p>
+  <table class="step-table">
+    <tr><td class="num">1</td><td class="reveal" data-r="r1">두 식을 <b>위아래로 더하기</b> — 왼쪽끼리, 오른쪽끼리: (x+y) + (x−y) = 5 + 1</td></tr>
+    <tr><td class="num">2</td><td class="reveal" data-r="r2">왼쪽을 정리하면 <b>+y 와 −y 가 만나 0</b>이 돼서 y가 쏙 사라져! →  <b>2x = 6</b></td></tr>
+    <tr><td class="num">3</td><td class="reveal" data-r="r3">양쪽을 똑같이 2로 나누면 →  <b>x = 3</b> (젤리 3개!)</td></tr>
+    <tr><td class="num">4</td><td class="reveal" data-r="r4">x=3을 x+y=5에 넣으면 →  <b>y = 2</b> (사탕 2개!) → 답 (3, 2) ✅</td></tr>
+  </table>
+  <div class="btnrow">
+    <button class="play bg" onclick="revealNext()">🔍 다음 풀이 한 줄 보기</button>
+    <button class="play ghost" onclick="revealReset()">↺ 다시</button>
+  </div>
+  <div class="tip">🌟 <b>핵심!</b> 그림에서 두 선이 만난 점 (3, 2)랑 계산 답 (3, 2)가 <b>똑같지?</b><br>
+  그래서 "두 조건의 답 = 두 선이 만나는 점"이야!</div>
+
+  <div class="word">
+    <span class="tag">조금 더!</span>
+    답을 찾으려고 푸는 식 = <b>방정식</b> (영어로 <b>equation</b>).<br>
+    두 식을 한 묶음으로 같이 푸는 건 <b>연립방정식</b>이라고 배워.<br>
+    두 그래프가 만나는 점은 <b>교점</b> (영어로 <b>intersection point</b>).
+  </div>
+</section>
+
+<!-- STEP 4 -->
+<section id="s4">
+  <span class="step-tag" style="background:var(--yellow); color:#5a4a10">STEP 4</span>
+  <h2><span class="emoji">🥣</span>휘어지는 곡선 (2차)</h2>
+  <p class="lead">x를 두 번 곱하면(x × x), 선이 <b>그릇처럼 휘어져</b>!</p>
+  <p class="exp">규칙은 <b style="color:var(--yellow)">y = x × x</b> (= x²).<br>
+  음수도 두 번 곱하면 양수가 되는 게 비밀!<br>
+  x에 −3부터 3까지 <b>점을 하나씩 찍어봐.</b><br>
+  점이 많아질수록 진짜 모양이 드러나!</p>
+  <div class="pillbar" id="pills4"></div>
+  <canvas id="cv4" width="500" height="500"></canvas>
+  <div class="readout" id="out4">위 숫자 버튼을 눌러서 점을 하나씩 찍어봐!</div>
+  <div class="tip">🔎 <b>U자 그릇 모양</b>이 보이지?<br>
+  맨 아래 <b>빨간 점 (0, 0)</b>이 가장 낮은 곳 = '<b>꼭짓점</b>'.<br>
+  −3과 3은 둘 다 y가 9라서 <b>좌우가 똑같아</b>!</div>
+  <div class="word">
+    <span class="tag">조금 더!</span>
+    x를 두 번 곱한 식 = <b>이차식</b>.<br>
+    이 그릇 모양 곡선은 <b>포물선</b>이라고 배워 — <b>공을 던졌을 때 날아가는 길</b> 모양이야 ⚾ (영어로 <b>parabola</b>).
+  </div>
+</section>
+
+<!-- STEP 5 -->
+<section id="s5">
+  <span class="step-tag" style="background:var(--purple)">STEP 5</span>
+  <h2><span class="emoji">🐍</span>구불구불 곡선 (3차)</h2>
+  <p class="lead">x를 <b>세 번</b> 곱하면(x × x × x), 곡선이 <b>구불 한 번 더</b> 휘어져!</p>
+  <p class="exp">규칙은 <b style="color:var(--purple)">y = x × x × x</b> (= x³).<br>
+  −3부터 3까지 <b>점을 하나씩 찍어봐.</b><br>
+  모일수록 <b>구불구불 S자</b>가 드러나!<br>
+  아까 그릇이랑 어떻게 다른지 봐.</p>
+  <div class="pillbar" id="pills5"></div>
+  <canvas id="cv5" width="500" height="500"></canvas>
+  <div class="readout" id="out5">숫자 버튼을 눌러서 S자 모양을 만들어봐!</div>
+  <div class="tip">🔎 가운데 <b>빨간 점 (0, 0)</b>을 잘 봐!<br>
+  여기서 휘는 <b>방향이 바뀌어</b> (아래로 → 위로).<br>
+  그릇(2차)엔 없던 점이 구불 곡선(3차)엔 생겨. 이게 핵심이야!</div>
+  <div class="word">
+    <span class="tag">조금 더!</span>
+    <b>곡선이 휘는 방향이 바뀌는 점</b> = <b>변곡점</b>이라고 배워. (영어로 <b>inflection point</b>)
+  </div>
+  <div class="quiz">
+    <b>🧠 퀴즈!</b> y = x × x × x 에서 x에 <b>2</b>를 넣으면 y는 얼마일까?
+    <div>
+      <span class="opt" onclick="quizAns(this,false)">6</span>
+      <span class="opt" onclick="quizAns(this,true)">8</span>
+      <span class="opt" onclick="quizAns(this,false)">9</span>
+    </div>
+    <div class="res" id="quizRes"></div>
+  </div>
+</section>
+
+<!-- STEP 6 -->
+<section id="s6">
+  <span class="step-tag" style="background:var(--pink)">STEP 6</span>
+  <h2><span class="emoji">🎢</span>자유 놀이터 (3D)</h2>
+  <p class="lead">이번엔 <b>입체</b>로! x, y, z 세 방향이 있는 3차원 세상이야.</p>
+  <p class="exp">지금까진 평평한 모눈종이(2차원)였어.<br>
+  여기에 <b>높이(z)</b>를 더하면 <b>산·골짜기 같은 입체</b>가 돼!<br>
+  그림을 <b>마우스로 빙글빙글 돌려보고</b>, 버튼으로 모양도 바꿔봐!</p>
+  <div class="pillbar" id="pills6"></div>
+  <div class="readout" id="eq3d" style="font-size:20px;color:var(--purple);font-weight:700">z = x × x + y × y</div>
+  <p class="smallnote" style="margin-bottom:8px">👆 손가락으로 드래그하면 돌아가고, 두 손가락으로 크게/작게 볼 수 있어.</p>
+  <div id="plot3d"></div>
+  <div class="readout" id="desc3d" style="margin-top:10px">버튼을 눌러 다른 입체 모양도 구경해봐!</div>
+</section>
+
+<footer>
+  은혜야, 끝까지 와줘서 고마워! 🌈 점 하나가 모여서 이렇게 멋진 그래프가 된단다.
+</footer>
+
+<script>
+/* ===== 공통: 모눈종이 좌표계 ===== */
+function makeGrid(cv, opts){
+  const ctx=cv.getContext('2d');
+  const o=Object.assign({min:-6,max:6},opts);
+  const W=cv.width,H=cv.height, span=o.max-o.min;
+  const X=x=>(x-o.min)/span*W;
+  const Y=y=>H-(y-o.min)/span*H;
+  function grid(){
+    ctx.clearRect(0,0,W,H);
+    ctx.strokeStyle='#eef1f5'; ctx.lineWidth=1;
+    for(let g=Math.ceil(o.min);g<=o.max;g++){
+      ctx.beginPath();ctx.moveTo(X(g),0);ctx.lineTo(X(g),H);ctx.stroke();
+      ctx.beginPath();ctx.moveTo(0,Y(g));ctx.lineTo(W,Y(g));ctx.stroke();
+    }
+    ctx.strokeStyle='#9aa7b5'; ctx.lineWidth=2;
+    ctx.beginPath();ctx.moveTo(X(0),0);ctx.lineTo(X(0),H);ctx.stroke();
+    ctx.beginPath();ctx.moveTo(0,Y(0));ctx.lineTo(W,Y(0));ctx.stroke();
+    ctx.fillStyle='#8a96a3'; ctx.font='11px sans-serif'; ctx.textAlign='center';
+    for(let g=Math.ceil(o.min);g<=o.max;g++) if(g!==0) ctx.fillText(g,X(g),Y(0)+13);
+    ctx.textAlign='right';
+    for(let g=Math.ceil(o.min);g<=o.max;g++) if(g!==0) ctx.fillText(g,X(0)-4,Y(g)+4);
+    // 축 글자
+    ctx.fillStyle='#4f9dff'; ctx.font='bold 13px sans-serif'; ctx.textAlign='left';
+    ctx.fillText('x',W-16,Y(0)-6);
+    ctx.fillStyle='#ff7eb6'; ctx.fillText('y',X(0)+6,14);
+  }
+  function dot(x,y,color,r){
+    ctx.fillStyle=color; ctx.strokeStyle='#fff'; ctx.lineWidth=2;
+    ctx.beginPath(); ctx.arc(X(x),Y(y),r||7,0,Math.PI*2); ctx.fill(); ctx.stroke();
+  }
+  function label(x,y,txt,color){
+    ctx.fillStyle=color||'#2d2a26'; ctx.font='bold 12px sans-serif'; ctx.textAlign='left';
+    ctx.fillText(txt, X(x)+9, Y(y)-7);
+  }
+  function line(fn,color){
+    ctx.strokeStyle=color; ctx.lineWidth=3; ctx.beginPath(); let started=false;
+    for(let px=0;px<=W;px++){
+      const x=o.min+(px/W)*span, y=fn(x), sy=Y(y);
+      if(y<o.min-20||y>o.max+20){started=false;continue;}
+      if(!started){ctx.moveTo(px,sy);started=true;} else ctx.lineTo(px,sy);
+    }
+    ctx.stroke();
+  }
+  return {ctx,X,Y,grid,dot,label,line,o};
+}
+
+/* ===== STEP 1: 클릭해서 점 찍기 ===== */
+const g1=makeGrid(document.getElementById('cv1'),{min:-6,max:6});
+g1.grid();
+document.getElementById('cv1').addEventListener('pointerdown',e=>{
+  const cv=document.getElementById('cv1'); const rect=cv.getBoundingClientRect();
+  const px=(e.clientX-rect.left)*(cv.width/rect.width);
+  const py=(e.clientY-rect.top)*(cv.height/rect.height);
+  const span=g1.o.max-g1.o.min;
+  let x=Math.round(g1.o.min+px/cv.width*span);
+  let y=Math.round(g1.o.max-py/cv.height*span);
+  g1.grid(); g1.dot(x,y,'#ff7eb6',8); g1.label(x,y,`(${x}, ${y})`,'#c2185b');
+  document.getElementById('out1').innerHTML=`네가 찍은 점의 주소는 <b>( ${x} , ${y} )</b> 야! 오른쪽으로 ${x}칸, 위로 ${y}칸 🎯`;
+});
+
+/* ===== STEP 2: y=2x+1 점 하나씩 ===== */
+const g2=makeGrid(document.getElementById('cv2'),{min:-6,max:6});
+let s2x=-1;
+function s2draw(){
+  g2.grid();
+  for(let xi=0;xi<=s2x;xi++){ const y=2*xi+1; g2.dot(xi,y,'#4f9dff'); g2.label(xi,y,`(${xi},${y})`,'#1565c0'); }
+}
+function step2Next(){
+  if(s2x>=2){ document.getElementById('out2').innerHTML='이제 점들을 이어볼까? 📈 버튼을 눌러봐!'; return; }
+  s2x++; s2draw();
+  const y=2*s2x+1;
+  document.getElementById('out2').innerHTML=`x = ${s2x} 넣기 →  y = 2×${s2x}+1 = <b>${y}</b>  →  점 (${s2x}, ${y}) 찍힘!`;
+}
+function step2Reset(){ s2x=-1; g2.grid(); document.getElementById('out2').innerHTML='버튼을 눌러 x = 0 부터 넣어보자!'; }
+function step2Line(){
+  s2x=2; s2draw(); g2.line(x=>2*x+1,'#4f9dff');
+  document.getElementById('out2').innerHTML='점들이 한 줄로 쭉! 이게 <b>y = 2x + 1</b> 의 그래프야 ✨';
+}
+g2.grid();
+
+/* ===== STEP 2: 기울기 슬라이더 ===== */
+const gSlope=makeGrid(document.getElementById('cvSlope'),{min:-6,max:6});
+function drawSlope(m, label){
+  gSlope.grid();
+  gSlope.line(x=>m*x, '#ff7eb6');
+  document.getElementById('slopeVal').textContent=label;
+  let extra='';
+  if(m===0) extra='  → 납작한 가로선! 안 기울어 😎';
+  else if(Math.abs(m)>=10) extra='  → 거의 수직으로 솟구쳐! 🚀';
+  else if(Math.abs(m)<1) extra='  → 1보다 작아서 아주 완만해, 천천히 올라가 🐌';
+  document.getElementById('slopeOut').innerHTML=`y = <b>${label}</b>x  —  기울기 ${label} ${m>0?'(오른쪽 위로 ↗)':m<0?'(오른쪽 아래로 ↘)':''}${extra}`;
+}
+(function(){
+  const box=document.getElementById('slopePills');
+  // {표시이름, 실제값}
+  const slopes=[
+    {t:'−100',v:-100},{t:'−2',v:-2},{t:'−1',v:-1},{t:'−½',v:-0.5},
+    {t:'0',v:0},
+    {t:'⅓',v:1/3},{t:'½',v:0.5},{t:'1',v:1},{t:'2',v:2},{t:'3',v:3},{t:'100',v:100}
+  ];
+  slopes.forEach(s=>{
+    const b=document.createElement('button'); b.textContent=s.t; if(s.v===2)b.classList.add('on');
+    b.onclick=()=>{ document.querySelectorAll('#slopePills button').forEach(e=>e.classList.remove('on')); b.classList.add('on'); drawSlope(s.v, s.t); };
+    box.appendChild(b);
+  });
+  drawSlope(2,'2');
+})();
+
+/* ===== STEP 2: y절편 슬라이더 ===== */
+const gB=makeGrid(document.getElementById('cvB'),{min:-6,max:6});
+function drawB(b){
+  gB.grid();
+  gB.line(x=>x+b, '#43c59e');
+  gB.dot(0,b,'#2e9e6f',8); gB.label(0,b,`(0, ${b})`,'#1f7a57');
+  document.getElementById('bVal').textContent=b;
+  document.getElementById('bOut').innerHTML=`y = x + <b>${b}</b>  —  세로축과 <b>(0, ${b})</b> 에서 만나 🎯`;
+}
+(function(){
+  const box=document.getElementById('bPills');
+  [-3,-2,-1,0,1,2,3].forEach(b=>{
+    const btn=document.createElement('button'); btn.textContent=(b>0?'+':'')+b; if(b===0)btn.classList.add('on');
+    btn.onclick=()=>{ document.querySelectorAll('#bPills button').forEach(e=>e.classList.remove('on')); btn.classList.add('on'); drawB(b); };
+    box.appendChild(btn);
+  });
+  drawB(0);
+})();
+
+/* ===== STEP 2: 그래프 찾기 게임 ===== */
+const matchQuiz=[
+  {eq:'y = x + 2',  m:1,  b:2,  hint:'기울기 1(↗), y절편 2'},
+  {eq:'y = -2x',    m:-2, b:0,  hint:'기울기 −2(↘), 원점 통과'},
+  {eq:'y = 3',      m:0,  b:3,  hint:'기울기 0(납작한 가로선), 높이 3'},
+  {eq:'y = x - 3',  m:1,  b:-3, hint:'기울기 1(↗), y절편 −3'},
+];
+let matchIdx=0, matchOrder=[];
+function shuffle(a){ for(let i=a.length-1;i>0;i--){ const j=Math.floor(Math.random()*(i+1)); [a[i],a[j]]=[a[j],a[i]]; } return a; }
+function drawMini(cv,m,b){
+  const g=makeGrid(cv,{min:-5,max:5});
+  g.grid(); g.line(x=>m*x+b,'#9d7bff');
+}
+function renderMatch(){
+  const wrap=document.getElementById('matchGame');
+  const q=matchQuiz[matchIdx];
+  // 보기: 정답 + 헷갈리는 오답 2개, 위치 섞기
+  let pool=matchQuiz.map((_,i)=>i).filter(i=>i!==matchIdx);
+  shuffle(pool);
+  matchOrder=shuffle([matchIdx, pool[0], pool[1]]);  // 보기 슬롯에 들어갈 문제 인덱스들
+  let html=`<div class="readout" style="font-size:22px;font-weight:700;color:var(--purple)">이 식의 그래프는? &nbsp; ${q.eq}</div>
+    <div style="display:flex;gap:10px;flex-wrap:wrap;justify-content:center;margin:10px 0">`;
+  matchOrder.forEach((qi,slot)=>{
+    html+=`<div style="text-align:center">
+      <canvas id="mini${slot}" width="150" height="150" style="border:2px solid var(--line);border-radius:10px;cursor:pointer" onclick="matchPick(${slot})"></canvas>
+      <div style="font-weight:700;margin-top:4px">${slot+1}번</div></div>`;
+  });
+  html+=`</div>`;
+  wrap.innerHTML=html;
+  matchOrder.forEach((qi,slot)=>drawMini(document.getElementById('mini'+slot), matchQuiz[qi].m, matchQuiz[qi].b));
+}
+function matchPick(slot){
+  const q=matchQuiz[matchIdx];
+  const out=document.getElementById('matchOut');
+  if(matchOrder[slot]===matchIdx){   // 고른 슬롯이 정답 문제를 담고 있나
+    out.style.color='#2e9e6f';
+    if(matchIdx<matchQuiz.length-1){
+      out.innerHTML=`딩동댕! ✅ <b>${q.eq}</b>는 ${q.hint} → ${slot+1}번! 다음 문제 👉`;
+      matchIdx++; setTimeout(renderMatch,1500);
+    }else{
+      out.innerHTML=`딩동댕! ✅ 마지막까지 다 맞혔어! 🎉`;
+      document.getElementById('matchCheer').style.display='block';
+    }
+  }else{
+    out.style.color='#e06666';
+    out.innerHTML=`음~ 다시! 힌트: <b>${q.eq}</b>는 ${q.hint} 야. 그 모양을 찾아봐 🔍`;
+  }
+}
+renderMatch();
+
+/* ===== STEP 2: 통합 놀이판 (y = ax + b) ===== */
+const gPlay=makeGrid(document.getElementById('cvPlay'),{min:-6,max:6});
+function fmtSlope(a){
+  // 보기 좋은 표시: 0.5 → ½, 1.5 → 1½ 정도까지만, 나머지는 숫자
+  if(a===0.5)return'½'; if(a===-0.5)return'−½';
+  if(a===1.5)return'1½'; if(a===-1.5)return'−1½';
+  if(a===2.5)return'2½'; if(a===-2.5)return'−2½';
+  if(a===3.5)return'3½'; if(a===-3.5)return'−3½';
+  return (a<0?'−':'')+Math.abs(a);
+}
+function drawPlay(){
+  const a=parseFloat(document.getElementById('slA').value);
+  const b=parseFloat(document.getElementById('slB').value);
+  gPlay.grid();
+  gPlay.line(x=>a*x+b, '#9d7bff');
+  gPlay.dot(0,b,'#e53935',8); g_label(0,b);                 // y절편(빨강)
+  const y1=a*1+b; gPlay.dot(1,y1,'#2563eb',7);              // x=1 위치(파랑)
+  document.getElementById('slAnum').textContent=fmtSlope(a);
+  document.getElementById('slBnum').textContent=(b<0?'−':'')+Math.abs(b);
+  const aDisp=fmtSlope(a);
+  let bDisp = b===0 ? '' : (b<0?'− '+Math.abs(b):'+ '+b);
+  document.getElementById('playEq').innerHTML=`y = ${aDisp}x ${bDisp}`;
+  document.getElementById('playOut').innerHTML=`기울기 <b style="color:var(--pink)">${aDisp}</b>, y절편 <b style="color:var(--green)">${b}</b>  →  빨간 점 (0, ${b})에서 출발해서 ${a>0?'↗ 올라가':a<0?'↘ 내려가':'→ 평평하게 가'}는 선이야!`;
+}
+function g_label(x,y){ gPlay.label(x,y,`(0, ${y})`,'#c62828'); }
+document.getElementById('slA').addEventListener('input',drawPlay);
+document.getElementById('slB').addEventListener('input',drawPlay);
+drawPlay();
+
+/* ===== STEP 3: 문장 → 식 만들기 ===== */
+function pick1(btn,sym,ok){
+  document.querySelectorAll('#ch1 button').forEach(b=>b.classList.remove('right','wrong'));
+  const blank=document.getElementById('b1op'), out=document.getElementById('r1out');
+  if(ok){
+    btn.classList.add('right'); blank.textContent=sym; blank.classList.add('done');
+    out.style.color='#2e9e6f'; out.innerHTML='맞아! <b>x ＋ y = 5</b>  완성! 🎉';
+  }else{
+    btn.classList.add('wrong'); out.style.color='#e06666'; out.textContent="'합친다'는 더하기야. 다시 골라볼까?";
+  }
+}
+let s2done={op:false,num:false};
+function pick2op(btn,sym,ok){
+  document.querySelectorAll('#ch2a button').forEach(b=>b.classList.remove('right','wrong'));
+  const blank=document.getElementById('b2op'), out=document.getElementById('r2out');
+  if(ok){ btn.classList.add('right'); blank.textContent=sym; blank.classList.add('done'); s2done.op=true; s2check(); }
+  else{ btn.classList.add('wrong'); out.style.color='#e06666'; out.textContent="'더 많다'는 차이니까 빼기야!"; }
+}
+function pick2num(btn,n,ok){
+  document.querySelectorAll('#ch2b button').forEach(b=>b.classList.remove('right','wrong'));
+  const blank=document.getElementById('b2num'), out=document.getElementById('r2out');
+  if(ok){ btn.classList.add('right'); blank.textContent=n; blank.classList.add('done'); s2done.num=true; s2check(); }
+  else{ btn.classList.add('wrong'); out.style.color='#e06666'; out.textContent='"1개 더 많아"니까 차이는 1이야!'; }
+}
+function s2check(){
+  const out=document.getElementById('r2out');
+  if(s2done.op&&s2done.num){ out.style.color='#2e9e6f'; out.innerHTML='완벽해! <b>x － y = 1</b>  완성! 🎉'; }
+}
+
+
+(function(){
+  const box=document.getElementById('pills25');
+  for(let x=0;x<=5;x++){
+    const b=document.createElement('button'); b.textContent='젤리 '+x+'개';
+    b.onclick=()=>{
+      document.querySelectorAll('#pills25 button').forEach(e=>e.classList.remove('on'));
+      b.classList.add('on');
+      const y=5-x;
+      document.getElementById('out25').innerHTML=`젤리 ${x}개면 →  사탕은 <b>${y}개</b>  (${x}+${y}=5 ✔)  →  답 (${x}, ${y})`;
+    };
+    box.appendChild(b);
+  }
+})();
+
+/* ===== STEP 3: 무작정 대입 ===== */
+(function(){
+  const box=document.getElementById('pills3guess');
+  for(let x=0;x<=5;x++){
+    const b=document.createElement('button'); b.textContent='젤리 '+x;
+    b.onclick=()=>{
+      document.querySelectorAll('#pills3guess button').forEach(e=>e.classList.remove('on'));
+      b.classList.add('on');
+      const y=5-x;                 // 조건1로 사탕 정함
+      const cond2 = (x-y===1);     // 조건2 만족?
+      const diff = x-y;
+      let msg=`젤리 ${x}, 사탕 ${y} →  조건1(합 5): ✔  /  조건2(차이 1): `;
+      if(cond2) msg+=`✔  <b style="color:#2e9e6f">둘 다 맞아! 정답 (${x}, ${y}) 🎉</b>`;
+      else msg+=`✖ (지금 차이는 ${diff})`;
+      document.getElementById('out3guess').innerHTML=msg;
+    };
+    box.appendChild(b);
+  }
+})();
+
+/* ===== STEP 3: 그래프로 (점 찍어 잇기) ===== */
+const g3=makeGrid(document.getElementById('cv3'),{min:-2,max:6});
+let s3A=new Set(), s3B=new Set(), s3lineAon=false, s3lineBon=false, s3crossOn=false;
+const fA=x=>5-x, fB=x=>x-1;
+function s3render(){
+  g3.grid();
+  if(s3lineAon) g3.line(fA,'#4f9dff');
+  if(s3lineBon) g3.line(fB,'#ff7eb6');
+  [...s3A].sort((a,b)=>a-b).forEach(x=>{ g3.dot(x,fA(x),'#4f9dff'); g3.label(x,fA(x),`(${x},${fA(x)})`,'#1565c0'); });
+  [...s3B].sort((a,b)=>a-b).forEach(x=>{ g3.dot(x,fB(x),'#ff7eb6'); g3.label(x,fB(x),`(${x},${fB(x)})`,'#c2185b'); });
+  if(s3crossOn){ g3.dot(3,2,'#ffc94d',9); g3.label(3,2,'(3, 2)','#a06a00'); }
+}
+(function(){
+  const ba=document.getElementById('pills3a'), bb=document.getElementById('pills3b');
+  for(let x=0;x<=5;x++){
+    const a=document.createElement('button'); a.textContent='x='+x;
+    a.onclick=()=>{ s3A.add(x); a.classList.add('on'); s3render();
+      document.getElementById('out3').innerHTML=`파란선: x=${x} →  y = 5−${x} = <b>${fA(x)}</b>  →  점 (${x}, ${fA(x)})`; };
+    ba.appendChild(a);
+    const b=document.createElement('button'); b.textContent='x='+x;
+    b.onclick=()=>{ s3B.add(x); b.classList.add('on'); s3render();
+      document.getElementById('out3').innerHTML=`분홍선: x=${x} →  y = ${x}−1 = <b>${fB(x)}</b>  →  점 (${x}, ${fB(x)})`; };
+    bb.appendChild(b);
+  }
+})();
+function s3lineA(){ s3lineAon=true; s3render(); document.getElementById('out3').innerHTML='파란 점들이 한 줄로! 이게 <b>y = 5 − x</b> 의 선이야 💙'; }
+function s3lineB(){ s3lineBon=true; s3render(); document.getElementById('out3').innerHTML='분홍 점들도 한 줄로! 이게 <b>y = x − 1</b> 의 선이야 💗'; }
+function s3showCross(){ s3lineAon=true; s3lineBon=true; s3crossOn=true; s3render(); document.getElementById('out3').innerHTML='두 선이 만나는 <b>노란 점 (3, 2)</b>! 젤리 3개, 사탕 2개 — <b>두 조건을 모두 만족하는 단 하나의 답</b>이야 🎯'; }
+function s3reset(){ s3A.clear(); s3B.clear(); s3lineAon=s3lineBon=s3crossOn=false; s3render();
+  document.querySelectorAll('#pills3a button,#pills3b button').forEach(e=>e.classList.remove('on'));
+  document.getElementById('out3').innerHTML='위 숫자 버튼으로 점을 찍어보자!'; }
+s3render();
+let rIdx=0; const rOrder=['r1','r2','r3','r4'];
+function revealNext(){
+  if(rIdx>=rOrder.length) return;
+  document.querySelector(`[data-r="${rOrder[rIdx]}"]`).classList.add('show');
+  rIdx++;
+}
+function revealReset(){ rIdx=0; ['r1','r2','r3','r4'].forEach(r=>document.querySelector(`[data-r="${r}"]`).classList.remove('show')); }
+
+/* 이항 펼치기 (A: x+y=5, C: x-y=1) */
+function makeReveal(order){
+  let idx=0;
+  return {
+    next(){ if(idx<order.length){ document.querySelector(`[data-r="${order[idx]}"]`).classList.add('show'); idx++; } },
+    reset(){ idx=0; order.forEach(r=>document.querySelector(`[data-r="${r}"]`).classList.remove('show')); }
+  };
+}
+const revA=makeReveal(['a1','a2']), revC=makeReveal(['c1','c2']);
+function revealA(){ revA.next(); }   function revealAReset(){ revA.reset(); }
+function revealC(){ revC.next(); }   function revealCReset(){ revC.reset(); }
+
+/* ===== STEP 4: y=x^2 (점이 모여 곡선이 됨) ===== */
+const g4=makeGrid(document.getElementById('cv4'),{min:-6,max:10});
+let picked4=new Set(); let smooth4=false;
+function draw4(){
+  g4.grid();
+  const xs=[...picked4].sort((a,b)=>a-b);
+  // 찍은 점들만 순서대로 연결 (점이 적으면 각지고, 많으면 매끈해짐)
+  if(xs.length>=2){
+    g4.ctx.strokeStyle='#ffc94d'; g4.ctx.lineWidth=3; g4.ctx.beginPath();
+    xs.forEach((xi,i)=>{ const px=g4.X(xi), py=g4.Y(xi*xi); i?g4.ctx.lineTo(px,py):g4.ctx.moveTo(px,py); });
+    g4.ctx.stroke();
+  }
+  if(smooth4) g4.line(x=>x*x,'#ffb300'); // 진짜 매끈한 곡선
+  xs.forEach(xi=>{
+    const y=xi*xi;
+    if(xi===0){ g4.dot(0,0,'#e53935',9); g4.label(0,0,'(0,0) 꼭짓점','#c62828'); }
+    else { g4.dot(xi,y,'#ffb300'); g4.label(xi,y,`(${xi},${y})`,'#9a6a00'); }
+  });
+}
+(function(){
+  const box=document.getElementById('pills4');
+  for(let xi=-3;xi<=3;xi++){
+    const b=document.createElement('button'); b.textContent='x='+xi;
+    b.onclick=()=>{ picked4.add(xi); b.classList.add('on'); draw4();
+      const y=xi*xi;
+      let msg=`x = ${xi} →  ${xi}×${xi} = <b>${y}</b>  →  점 (${xi}, ${y})`;
+      const n=picked4.size;
+      if(n<=2) msg+='  … 아직 점이 적어서 모양이 안 보이지? 더 찍어봐!';
+      else if(n<7) msg+='  … 점 ' + n + '개! 슬슬 U자가 보이기 시작해 🥣';
+      else msg+='  … 점 7개 전부! 이제 그릇 모양이 확실하지? ✨';
+      document.getElementById('out4').innerHTML=msg;
+    };
+    box.appendChild(b);
+  }
+  // 보조 버튼
+  const all=document.createElement('button'); all.textContent='전부 찍기'; all.style.background='#fff3d6';
+  all.onclick=()=>{ for(let xi=-3;xi<=3;xi++)picked4.add(xi); document.querySelectorAll('#pills4 button').forEach(e=>e.classList.add('on')); draw4(); document.getElementById('out4').innerHTML='점 7개를 다 찍으니 <b>U자 그릇 모양</b>이 완성! 🥣'; };
+  box.appendChild(all);
+  const sm=document.createElement('button'); sm.textContent='매끈하게'; sm.style.background='#fff3d6';
+  sm.onclick=()=>{ smooth4=true; for(let xi=-3;xi<=3;xi++)picked4.add(xi); draw4(); document.getElementById('out4').innerHTML='점과 점 사이를 무수히 많이 채우면 이렇게 <b>매끈한 곡선</b>이 돼! 점이 정말 빽빽하게 모인 거야 😊'; };
+  box.appendChild(sm);
+  g4.grid();
+})();
+
+/* ===== STEP 5: y=x^3 (점이 모여 S자, 변곡점 강조) ===== */
+// y값이 -27~27이라 화면엔 1/9 축소해서 표시 (라벨 숫자는 실제값)
+const g5b=makeGrid(document.getElementById('cv5'),{min:-3.5,max:3.5});
+let picked5=new Set(); let smooth5=false;
+const sc=9; // 화면 축소 비율
+function draw5(){
+  g5b.grid();
+  const xs=[...picked5].sort((a,b)=>a-b);
+  if(xs.length>=2){
+    g5b.ctx.strokeStyle='#9d7bff'; g5b.ctx.lineWidth=3; g5b.ctx.beginPath();
+    xs.forEach((xi,i)=>{ const px=g5b.X(xi), py=g5b.Y(xi*xi*xi/sc); i?g5b.ctx.lineTo(px,py):g5b.ctx.moveTo(px,py); });
+    g5b.ctx.stroke();
+  }
+  if(smooth5) g5b.line(x=>x*x*x/sc,'#7c4dff');
+  xs.forEach(xi=>{
+    const y=xi*xi*xi;
+    if(xi===0){ g5b.dot(0,0,'#e53935',9); g5b.label(0,0,'(0,0) 휘는방향 바뀜','#c62828'); }
+    else { g5b.dot(xi,y/sc,'#7c4dff'); g5b.label(xi,y/sc,`(${xi},${y})`,'#5e35b1'); }
+  });
+}
+(function(){
+  const box=document.getElementById('pills5');
+  for(let xi=-3;xi<=3;xi++){
+    const b=document.createElement('button'); b.textContent='x='+xi;
+    b.onclick=()=>{ picked5.add(xi); b.classList.add('on'); draw5();
+      const y=xi*xi*xi; const n=picked5.size;
+      let msg=`x = ${xi} →  ${xi}×${xi}×${xi} = <b>${y}</b>  →  점 (${xi}, ${y})`;
+      if(n<=2) msg+='  … 아직 모양이 안 보이지? 더 찍어봐!';
+      else if(n<7) msg+='  … 점 '+n+'개! 구불구불 S자가 보이기 시작해 🐍';
+      else msg+='  … 점 7개 전부! S자 모양이 확실하지? ✨';
+      document.getElementById('out5').innerHTML=msg;
+    };
+    box.appendChild(b);
+  }
+  const all=document.createElement('button'); all.textContent='전부 찍기'; all.style.background='#efe6ff';
+  all.onclick=()=>{ for(let xi=-3;xi<=3;xi++)picked5.add(xi); document.querySelectorAll('#pills5 button').forEach(e=>e.classList.add('on')); draw5(); document.getElementById('out5').innerHTML='점 7개로 <b>S자 곡선</b> 완성! 가운데 빨간 점에서 휘는 방향이 바뀌어 🐍'; };
+  box.appendChild(all);
+  const sm=document.createElement('button'); sm.textContent='매끈하게'; sm.style.background='#efe6ff';
+  sm.onclick=()=>{ smooth5=true; for(let xi=-3;xi<=3;xi++)picked5.add(xi); draw5(); document.getElementById('out5').innerHTML='점을 아주 빽빽하게 채우면 이렇게 <b>매끈한 S자 곡선</b>이 돼! 😊'; };
+  box.appendChild(sm);
+  g5b.grid();
+})();
+
+/* 퀴즈 */
+function quizAns(el,ok){
+  const r=document.getElementById('quizRes');
+  if(ok){ r.style.color='#2e9e6f'; r.textContent='정답! 2×2×2 = 8 이야 🎉 잘했어!'; }
+  else{ r.style.color='#e06666'; r.textContent='음~ 다시! 2를 세 번 곱해보자 (2×2×2).'; }
+}
+
+/* ===== STEP 6: 3D ===== */
+const surf=[
+  {n:'그릇', eq:'z = x × x + y × y',           desc:'한가운데가 쏙 들어간 <b>밥그릇</b> 모양! 가장 낮은 곳이 가운데야 🥣', fn:(x,y)=>x*x+y*y},
+  {n:'언덕', eq:'z = −(x × x + y × y) + 10',    desc:'위로 봉긋 솟은 <b>언덕(산)</b> 모양! 꼭대기가 가운데에 있어 ⛰️', fn:(x,y)=>-(x*x+y*y)+10},
+  {n:'물결', eq:'z = 2 × sin(x) + 2 × cos(y)',  desc:'출렁출렁 <b>물결(파도)</b> 모양! 오르락내리락 반복돼 🌊', fn:(x,y)=>Math.sin(x)*2+Math.cos(y)*2},
+  {n:'안장', eq:'z = x × x − y × y',            desc:'한쪽은 올라가고 한쪽은 내려가는 <b>말 안장</b> 모양! 감자칩이랑 비슷해 🥔', fn:(x,y)=>x*x-y*y},
+];
+let cur6=0;
+function draw3D(){
+  const s=surf[cur6], N=44, lo=-5, hi=5, step=(hi-lo)/N;
+  const xs=[],ys=[],z=[];
+  for(let i=0;i<=N;i++){xs.push(lo+i*step);ys.push(lo+i*step);}
+  for(let j=0;j<=N;j++){const row=[];for(let i=0;i<=N;i++)row.push(s.fn(xs[i],ys[j]));z.push(row);}
+  document.getElementById('eq3d').textContent=s.eq;
+  document.getElementById('desc3d').innerHTML=s.desc;
+  Plotly.newPlot('plot3d',[{type:'surface',x:xs,y:ys,z:z,colorscale:'Portland',showscale:false}],
+    {margin:{l:0,r:0,t:0,b:0},scene:{xaxis:{title:'x'},yaxis:{title:'y'},zaxis:{title:'z'},camera:{eye:{x:1.6,y:1.6,z:1}}}},
+    {responsive:true,displayModeBar:false});
+}
+(function(){
+  const box=document.getElementById('pills6');
+  surf.forEach((s,i)=>{
+    const b=document.createElement('button'); b.textContent=s.n; if(i===0)b.classList.add('on');
+    b.onclick=()=>{ cur6=i; document.querySelectorAll('#pills6 button').forEach(x=>x.classList.remove('on')); b.classList.add('on'); draw3D(); };
+    box.appendChild(b);
+  });
+})();
+draw3D();
+</script>
+</body>
+</html>
