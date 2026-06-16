@@ -1545,11 +1545,17 @@ const GEN={
   // 좌표 읽기: 점의 좌표 [기본→응용]
   readPoint(){
     const x=rnd(-4,4),y=rnd(-4,4);if(x===0&&y===0)return GEN.readPoint();
+    const pt=(a,b)=>`(${a===0?0:a}, ${b===0?0:b})`; // a===0?0:a → -0을 0으로 정규화(중복 방지)
+    const correct=pt(x,y);
+    // 흔한 오답 후보 + 예비 오답 → 정답과 겹치거나 서로 중복되는 건 제거하고 3개만 사용
+    const cand=[pt(y,x),pt(x,-y),pt(-x,y),pt(-x,-y),pt(y,-x),pt(x+1,y),pt(x,y+1),pt(x-1,y),pt(x,y-1)];
+    const distract=[];
+    for(const c of cand){ if(c!==correct && distract.indexOf(c)<0 && distract.length<3) distract.push(c); }
     return {type:"quiz",figureRaw:drawPlane({points:[[x,y]],range:5}),
       q:`초록 점의 좌표는? (가로 = x, 세로 = y)`,
-      opts:shuffle([`(${x}, ${y})`,`(${y}, ${x})`,`(${x}, ${-y})`,`(${-x}, ${y})`]),answer:-1,_ansLabel:`(${x}, ${y})`,
-      okMsg:`맞아! 가로 ${x}, 세로 ${y} → (${x}, ${y}) 📍`,
-      diag:{[`(${y}, ${x})`]:{type:"concept",msg:`가로(x)와 세로(y)가 바뀌었어! <b>가로 먼저</b> 읽어. (x, y) 순서!`}}};
+      opts:shuffle([correct,...distract]),answer:-1,_ansLabel:correct,
+      okMsg:`맞아! 가로 ${x}, 세로 ${y} → ${correct} 📍`,
+      diag:{[pt(y,x)]:{type:"concept",msg:`가로(x)와 세로(y)가 바뀌었어! <b>가로 먼저</b> 읽어. (x, y) 순서!`}}};
   },
   // 함수값: x 넣으면 y는? [응용]
   funcVal(){
