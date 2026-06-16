@@ -1171,11 +1171,11 @@ const game={
   },
   // 오답 기록: 그 유형을 복습 큐에 넣고 연속정답 0으로
   markWrong(s){
-    if(s&&s._gen){ state.reviewQueue[s._gen]=0; }
+    if(s&&s._gen){ state.reviewQueue[s._gen]=0; s._missed=true; }
   },
   // 정답 기록: 복습 큐에 있던 유형이면 연속정답 +1, 3이면 졸업(제거)
   markRight(s){
-    if(s&&s._gen&&state.reviewQueue[s._gen]!==undefined){
+    if(s&&s._gen&&!s._missed&&state.reviewQueue[s._gen]!==undefined){
       state.reviewQueue[s._gen]++;
       if(state.reviewQueue[s._gen]>=3) delete state.reviewQueue[s._gen];
     }
@@ -1876,7 +1876,7 @@ const game={
     if(ansIdx===undefined)ansIdx=s.answer;
     if(idx===ansIdx){btn.classList.add("right");all.forEach(b=>b.disabled=true);
       diag.className="diag ok show";diag.innerHTML=`<span class="dtag" style="background:#3FA047;color:#fff">정답</span><br>${s.okMsg}`;this.afterCorrect();}
-    else{btn.classList.add("wrong");btn.disabled=true;
+    else{btn.classList.add("wrong");btn.disabled=true;this.markWrong(s);
       let info;
       if(s.diag==="BARMM")info={type:"read",msg:"막대 <b>높이</b>를 다시 비교해봐! 가장 길거나 짧은 막대의 이름을 골라."};
       else if(s.diag==="LINECH")info={type:"read",msg:"선이 가장 <b>가파르게</b> 올라간 구간이야. 두 점 사이가 가장 많이 벌어진 곳을 봐!"};
@@ -1904,8 +1904,8 @@ const game={
     else if(this._typed.length<6)this._typed+=k;
     box.innerHTML=(this._neg?"−":"")+(this._typed===""?'<span class="cursor">_</span>':this._typed+'<span class="cursor">_</span>');},
 
-  markWrong(s){if(s&&s._gen){state.reviewQueue[s._gen]=0;}},
-  markRight(s){if(s&&s._gen&&state.reviewQueue[s._gen]!==undefined){state.reviewQueue[s._gen]++;if(state.reviewQueue[s._gen]>=3)delete state.reviewQueue[s._gen];}},
+  markWrong(s){if(s&&s._gen){state.reviewQueue[s._gen]=0;s._missed=true;}},
+  markRight(s){if(s&&s._gen&&!s._missed&&state.reviewQueue[s._gen]!==undefined){state.reviewQueue[s._gen]++;if(state.reviewQueue[s._gen]>=3)delete state.reviewQueue[s._gen];}},
   buildReviewGen(g){const o=GEN[g]();o._practice="복습";o._gen=g;return o;},
   afterCorrect(){this.markRight(state.steps[state.curStep]);state.stars+=1;this.syncStats();saveProgress();
     const body=document.getElementById("lessonBody");
@@ -2319,7 +2319,7 @@ const game={
     if(ansIdx===undefined)ansIdx=s.answer;
     if(idx===ansIdx){btn.classList.add("right");all.forEach(b=>b.disabled=true);
       diag.className="diag ok show";diag.innerHTML=`<span class="dtag" style="background:#3FA047;color:#fff">정답</span><br>${s.okMsg}`;this.afterCorrect();}
-    else{btn.classList.add("wrong");btn.disabled=true;
+    else{btn.classList.add("wrong");btn.disabled=true;this.markWrong(s);
       let info;
       if(s.diag==="BARMM")info={type:"read",msg:"막대 <b>높이</b>를 다시 비교해봐! 가장 길거나 짧은 막대의 이름을 골라."};
       else if(s.diag==="LINECH")info={type:"read",msg:"선이 가장 <b>가파르게</b> 올라간 구간이야. 두 점 사이가 가장 많이 벌어진 곳을 봐!"};
@@ -2347,8 +2347,8 @@ const game={
     else if(this._typed.length<6)this._typed+=k;
     box.innerHTML=(this._neg?"−":"")+(this._typed===""?'<span class="cursor">_</span>':this._typed+'<span class="cursor">_</span>');},
 
-    markWrong(s){if(s&&s._gen){state.reviewQueue[s._gen]=0;}},
-  markRight(s){if(s&&s._gen&&state.reviewQueue[s._gen]!==undefined){state.reviewQueue[s._gen]++;if(state.reviewQueue[s._gen]>=3)delete state.reviewQueue[s._gen];}},
+    markWrong(s){if(s&&s._gen){state.reviewQueue[s._gen]=0;s._missed=true;}},
+  markRight(s){if(s&&s._gen&&!s._missed&&state.reviewQueue[s._gen]!==undefined){state.reviewQueue[s._gen]++;if(state.reviewQueue[s._gen]>=3)delete state.reviewQueue[s._gen];}},
   buildReviewGen(g){const o=GEN[g]();o._practice="복습";o._gen=g;return o;},
   afterCorrect(){this.markRight(state.steps[state.curStep]);state.stars+=1;this.syncStats();saveProgress();
     const body=document.getElementById("lessonBody");
@@ -2684,7 +2684,7 @@ const game={
     if(ansIdx===undefined)ansIdx=s.answer;
     if(idx===ansIdx){btn.classList.add("right");all.forEach(b=>b.disabled=true);
       diag.className="diag ok show";diag.innerHTML=`<span class="dtag" style="background:#3FA047;color:#fff">정답</span><br>${s.okMsg}`;this.afterCorrect();}
-    else{btn.classList.add("wrong");btn.disabled=true;
+    else{btn.classList.add("wrong");btn.disabled=true;this.markWrong(s);
       let info;
       if(s.diag==="BARMM")info={type:"read",msg:"막대 <b>높이</b>를 다시 비교해봐! 가장 길거나 짧은 막대의 이름을 골라."};
       else if(s.diag==="LINECH")info={type:"read",msg:"선이 가장 <b>가파르게</b> 올라간 구간이야. 두 점 사이가 가장 많이 벌어진 곳을 봐!"};
@@ -2713,8 +2713,8 @@ const game={
     else if(this._typed.length<6)this._typed+=k;
     box.innerHTML=(this._neg?"−":"")+(this._typed===""?'<span class="cursor">_</span>':this._typed+'<span class="cursor">_</span>');},
 
-    markWrong(s){if(s&&s._gen){state.reviewQueue[s._gen]=0;}},
-  markRight(s){if(s&&s._gen&&state.reviewQueue[s._gen]!==undefined){state.reviewQueue[s._gen]++;if(state.reviewQueue[s._gen]>=3)delete state.reviewQueue[s._gen];}},
+    markWrong(s){if(s&&s._gen){state.reviewQueue[s._gen]=0;s._missed=true;}},
+  markRight(s){if(s&&s._gen&&!s._missed&&state.reviewQueue[s._gen]!==undefined){state.reviewQueue[s._gen]++;if(state.reviewQueue[s._gen]>=3)delete state.reviewQueue[s._gen];}},
   buildReviewGen(g){const o=GEN[g]();o._practice="복습";o._gen=g;return o;},
   afterCorrect(){this.markRight(state.steps[state.curStep]);state.stars+=1;this.syncStats();saveProgress();
     const body=document.getElementById("lessonBody");
@@ -3087,7 +3087,7 @@ const game={
     if(ansIdx===undefined)ansIdx=s.answer;
     if(idx===ansIdx){btn.classList.add("right");all.forEach(b=>b.disabled=true);
       diag.className="diag ok show";diag.innerHTML=`<span class="dtag" style="background:#3FA047;color:#fff">정답</span><br>${s.okMsg}`;this.afterCorrect();}
-    else{btn.classList.add("wrong");btn.disabled=true;
+    else{btn.classList.add("wrong");btn.disabled=true;this.markWrong(s);
       let info;
       if(s.diag==="BARMM")info={type:"read",msg:"막대 <b>높이</b>를 다시 비교해봐! 가장 길거나 짧은 막대의 이름을 골라."};
       else if(s.diag==="LINECH")info={type:"read",msg:"선이 가장 <b>가파르게</b> 올라간 구간이야. 두 점 사이가 가장 많이 벌어진 곳을 봐!"};
@@ -3115,8 +3115,8 @@ const game={
     else if(this._typed.length<4)this._typed+=k;
     box.innerHTML=(this._neg?"−":"")+(this._typed===""?'<span class="cursor">_</span>':this._typed+'<span class="cursor">_</span>');},
 
-    markWrong(s){if(s&&s._gen){state.reviewQueue[s._gen]=0;}},
-  markRight(s){if(s&&s._gen&&state.reviewQueue[s._gen]!==undefined){state.reviewQueue[s._gen]++;if(state.reviewQueue[s._gen]>=3)delete state.reviewQueue[s._gen];}},
+    markWrong(s){if(s&&s._gen){state.reviewQueue[s._gen]=0;s._missed=true;}},
+  markRight(s){if(s&&s._gen&&!s._missed&&state.reviewQueue[s._gen]!==undefined){state.reviewQueue[s._gen]++;if(state.reviewQueue[s._gen]>=3)delete state.reviewQueue[s._gen];}},
   buildReviewGen(g){const o=GEN[g]();o._practice="복습";o._gen=g;return o;},
   afterCorrect(){this.markRight(state.steps[state.curStep]);state.stars+=1;this.syncStats();saveProgress();
     const body=document.getElementById("lessonBody");
@@ -3501,7 +3501,7 @@ const game={
     if(ansIdx===undefined)ansIdx=s.answer;
     if(idx===ansIdx){btn.classList.add("right");all.forEach(b=>b.disabled=true);
       diag.className="diag ok show";diag.innerHTML=`<span class="dtag" style="background:#3FA047;color:#fff">정답</span><br>${s.okMsg}`;this.afterCorrect();}
-    else{btn.classList.add("wrong");btn.disabled=true;
+    else{btn.classList.add("wrong");btn.disabled=true;this.markWrong(s);
       let info;
       if(s.diag==="BARMM")info={type:"read",msg:"막대 <b>높이</b>를 다시 비교해봐! 가장 길거나 짧은 막대의 이름을 골라."};
       else if(s.diag==="LINECH")info={type:"read",msg:"선이 가장 <b>가파르게</b> 올라간 구간이야. 두 점 사이가 가장 많이 벌어진 곳을 봐!"};
@@ -3532,8 +3532,8 @@ const game={
     else if(this._typed.replace(".","").length<5)this._typed+=k;
     box.innerHTML=(this._neg?"−":"")+(this._typed===""?'<span class="cursor">_</span>':this._typed+'<span class="cursor">_</span>');},
 
-    markWrong(s){if(s&&s._gen){state.reviewQueue[s._gen]=0;}},
-  markRight(s){if(s&&s._gen&&state.reviewQueue[s._gen]!==undefined){state.reviewQueue[s._gen]++;if(state.reviewQueue[s._gen]>=3)delete state.reviewQueue[s._gen];}},
+    markWrong(s){if(s&&s._gen){state.reviewQueue[s._gen]=0;s._missed=true;}},
+  markRight(s){if(s&&s._gen&&!s._missed&&state.reviewQueue[s._gen]!==undefined){state.reviewQueue[s._gen]++;if(state.reviewQueue[s._gen]>=3)delete state.reviewQueue[s._gen];}},
   buildReviewGen(g){const o=GEN[g]();o._practice="복습";o._gen=g;return o;},
   afterCorrect(){this.markRight(state.steps[state.curStep]);state.stars+=1;this.syncStats();saveProgress();
     const body=document.getElementById("lessonBody");
@@ -3886,7 +3886,7 @@ const game={
     if(ansIdx===undefined)ansIdx=s.answer;
     if(idx===ansIdx){btn.classList.add("right");all.forEach(b=>b.disabled=true);
       diag.className="diag ok show";diag.innerHTML=`<span class="dtag" style="background:#3FA047;color:#fff">정답</span><br>${s.okMsg}`;this.afterCorrect();}
-    else{btn.classList.add("wrong");btn.disabled=true;
+    else{btn.classList.add("wrong");btn.disabled=true;this.markWrong(s);
       let info;
       if(s.diag==="BARMM")info={type:"read",msg:"막대 <b>높이</b>를 다시 비교해봐! 가장 길거나 짧은 막대의 이름을 골라."};
       else if(s.diag==="LINECH")info={type:"read",msg:"선이 가장 <b>가파르게</b> 올라간 구간이야. 두 점 사이가 가장 많이 벌어진 곳을 봐!"};
@@ -3914,8 +3914,8 @@ const game={
     else if(this._typed.length<4)this._typed+=k;
     box.innerHTML=(this._neg?"−":"")+(this._typed===""?'<span class="cursor">_</span>':this._typed+'<span class="cursor">_</span>');},
 
-    markWrong(s){if(s&&s._gen){state.reviewQueue[s._gen]=0;}},
-  markRight(s){if(s&&s._gen&&state.reviewQueue[s._gen]!==undefined){state.reviewQueue[s._gen]++;if(state.reviewQueue[s._gen]>=3)delete state.reviewQueue[s._gen];}},
+    markWrong(s){if(s&&s._gen){state.reviewQueue[s._gen]=0;s._missed=true;}},
+  markRight(s){if(s&&s._gen&&!s._missed&&state.reviewQueue[s._gen]!==undefined){state.reviewQueue[s._gen]++;if(state.reviewQueue[s._gen]>=3)delete state.reviewQueue[s._gen];}},
   buildReviewGen(g){const o=GEN[g]();o._practice="복습";o._gen=g;return o;},
   afterCorrect(){this.markRight(state.steps[state.curStep]);state.stars+=1;this.syncStats();saveProgress();
     const body=document.getElementById("lessonBody");
@@ -4380,7 +4380,7 @@ const game={
   pickOption(btn,idx,s){const all=btn.parentElement.querySelectorAll(".opt"),diag=document.getElementById("diag");
     if(idx===s.answer){btn.classList.add("right");all.forEach(b=>b.disabled=true);
       diag.className="diag ok show";diag.innerHTML=`<span class="dtag" style="background:#3FA047;color:#fff">정답</span><br>${s.okMsg}`;this.afterCorrect();}
-    else{btn.classList.add("wrong");btn.disabled=true;const info=(s.diag&&s.diag[idx])||{type:"calc",msg:"다시 생각해볼까?"};
+    else{btn.classList.add("wrong");btn.disabled=true;this.markWrong(s);const info=(s.diag&&s.diag[idx])||{type:"calc",msg:"다시 생각해볼까?"};
       const tag=info.type==="concept"?"🧠 개념 확인":info.type==="read"?"❗ 다시 읽기":"🔧 연산 실수";
       diag.className="diag "+info.type+" show";diag.innerHTML=`<span class="dtag">${tag}</span><br>${info.msg}<br><span style="font-size:12px;color:#888">다른 답을 다시 눌러봐!</span>`;}},
 
@@ -4404,8 +4404,8 @@ const game={
     else if(this._typed.length<4)this._typed+=k;
     box.innerHTML=(this._neg?"−":"")+(this._typed===""?'<span class="cursor">_</span>':this._typed+'<span class="cursor">_</span>');},
 
-    markWrong(s){if(s&&s._gen){state.reviewQueue[s._gen]=0;}},
-  markRight(s){if(s&&s._gen&&state.reviewQueue[s._gen]!==undefined){state.reviewQueue[s._gen]++;if(state.reviewQueue[s._gen]>=3)delete state.reviewQueue[s._gen];}},
+    markWrong(s){if(s&&s._gen){state.reviewQueue[s._gen]=0;s._missed=true;}},
+  markRight(s){if(s&&s._gen&&!s._missed&&state.reviewQueue[s._gen]!==undefined){state.reviewQueue[s._gen]++;if(state.reviewQueue[s._gen]>=3)delete state.reviewQueue[s._gen];}},
   buildReviewGen(g){const o=GEN[g]();o._practice="복습";o._gen=g;return o;},
   afterCorrect(){this.markRight(state.steps[state.curStep]);state.stars+=1;this.syncStats();saveProgress();
     const body=document.getElementById("lessonBody");
@@ -4909,7 +4909,7 @@ const game={
     if(ansIdx===undefined)ansIdx=s.answer;
     if(idx===ansIdx){btn.classList.add("right");all.forEach(b=>b.disabled=true);
       diag.className="diag ok show";diag.innerHTML=`<span class="dtag" style="background:#3FA047;color:#fff">정답</span><br>${s.okMsg}`;this.afterCorrect();}
-    else{btn.classList.add("wrong");btn.disabled=true;
+    else{btn.classList.add("wrong");btn.disabled=true;this.markWrong(s);
       let info;
       if(s.diag==="BARMM")info={type:"read",msg:"막대 <b>높이</b>를 다시 비교해봐! 가장 길거나 짧은 막대의 이름을 골라."};
       else if(s.diag==="LINECH")info={type:"read",msg:"선이 가장 <b>가파르게</b> 올라간 구간이야. 두 점 사이가 가장 많이 벌어진 곳을 봐!"};
@@ -4938,8 +4938,8 @@ const game={
     else if(this._typed.length<4)this._typed+=k;
     box.innerHTML=(this._neg?"−":"")+(this._typed===""?'<span class="cursor">_</span>':this._typed+'<span class="cursor">_</span>');},
 
-    markWrong(s){if(s&&s._gen){state.reviewQueue[s._gen]=0;}},
-  markRight(s){if(s&&s._gen&&state.reviewQueue[s._gen]!==undefined){state.reviewQueue[s._gen]++;if(state.reviewQueue[s._gen]>=3)delete state.reviewQueue[s._gen];}},
+    markWrong(s){if(s&&s._gen){state.reviewQueue[s._gen]=0;s._missed=true;}},
+  markRight(s){if(s&&s._gen&&!s._missed&&state.reviewQueue[s._gen]!==undefined){state.reviewQueue[s._gen]++;if(state.reviewQueue[s._gen]>=3)delete state.reviewQueue[s._gen];}},
   buildReviewGen(g){const o=GEN[g]();o._practice="복습";o._gen=g;return o;},
   afterCorrect(){this.markRight(state.steps[state.curStep]);state.stars+=1;this.syncStats();saveProgress();
     const body=document.getElementById("lessonBody");
