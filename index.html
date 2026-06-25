@@ -822,6 +822,33 @@ const GEN={
         {test:v=>v===Math.max(p,q),type:"read",msg:`그건 큰 해(오른쪽 점)야! 왼쪽 점이 작은 해 ${small}.`},
         {test:()=>true,type:"read",msg:`주황 점 두 개의 x좌표가 ${p}, ${q}. 작은 건 ${small}.`}]};
   },
+
+  // ===== 은혜 집중 보강: 이항 한 걸음씩 =====
+  // a·x + b = c → 이항(부호 바뀜) → 나누기
+  transStep(){
+    const a=rnd(2,4), x=rnd(2,6), b=rnd(2,9);
+    const c=a*x+b;
+    return {type:"input",allowNeg:true,
+      q:`<b>${a}x + ${b} = ${c}</b><br>📦 +${b}을 <b>반대편으로 이항</b>하면 부호가 바뀌어 −${b}!<br>① ${a}x = ${c} − ${b} = ${c-b}<br>② 양쪽을 ${a}로 나누기<br>x = ?`,answer:x,
+      okMsg:`완벽! 넘어가면 부호가 바뀌지(+${b}→−${b}). ${c-b}÷${a}=${x} 😊`,
+      wrongHints:[
+        {test:v=>v===c-b,type:"concept",msg:`아직 ${a}로 안 나눴어! ${a}x=${c-b}니까 x=${c-b}÷${a}=${x}.`},
+        {test:v=>v===c+b,type:"concept",msg:`이항하면 부호가 <b>바뀌어</b>! +${b}이 넘어가면 −${b}이 돼. ${c}−${b}=${c-b}.`},
+        {test:()=>true,type:"calc",msg:`${a}x=${c-b} → x=${x}.`}]};
+  },
+  // 괄호 + 양쪽 x 결합 정리: a(bx+c) = dx + e  (4단계 모두 보여주며 풀기)
+  tidyCombo(){
+    const a=rnd(2,3), b=2, c=rnd(1,3);
+    const ab=a*b, d=rnd(1,ab-1), x=rnd(2,5);
+    const ac=a*c, e=(ab-d)*x+ac;
+    return {type:"input",allowNeg:true,
+      q:`<b>${a}(${b}x + ${c}) = ${d}x + ${e}</b><br>한 단계씩 천천히 따라와!<br>① 괄호 풀기: <b>${ab}x + ${ac}</b> = ${d}x + ${e}<br>② ${d}x를 왼쪽으로 이항: <b>${ab-d}x</b> + ${ac} = ${e}<br>③ +${ac}을 오른쪽으로 이항: ${ab-d}x = <b>${e-ac}</b><br>④ ÷${ab-d}: x = ?`,answer:x,
+      okMsg:`최고야! 어려운 식도 한 줄씩 푸니까 풀렸지? x=${x} 🏆`,
+      wrongHints:[
+        {test:v=>v===e-ac,type:"concept",msg:`마지막에 ${ab-d}로 나눠야 해! ${e-ac}÷${ab-d}=${x}.`},
+        {test:v=>v===ab,type:"concept",msg:`괄호 풀 땐 ${a}×${b}=${ab}(x앞), ${a}×${c}=${ac}(숫자). 그 다음 이항!`},
+        {test:()=>true,type:"calc",msg:`${ab-d}x=${e-ac} → x=${x}.`}]};
+  },
 };
 
 /* ============================================================
@@ -927,6 +954,18 @@ const GROUPS=[
        tip:"x끼리: 5x−3x=2x (사과 5−3=2!)"},
       {gen:"collect",repeat:3},
       {gen:"collectHard",repeat:2},
+      {type:"teach",step:"이항이 뭐야?",title:"넘어가면 부호가 바뀐다!",
+       html:`<p><b>이항</b>은 어떤 항을 <b>등호(=) 반대편으로 옮기는</b> 거야. 옮기면 <b>부호가 바뀌어!</b> (+ ↔ −)</p>
+       <div class="eqbox">2x + 5 = 11<br>+5를 넘기면 −5<br>2x = 11 − 5 = 6<br><b>→ x = 3</b></div>
+       <p>왜 바뀔까? <b>양팔저울</b>처럼 양쪽에서 똑같이 5를 뺀 거랑 같거든 ⚖️</p>`,
+       tip:"<b>=를 넘어가면 +는 −로, −는 +로!</b>"},
+      {gen:"transStep",repeat:3},
+      {type:"teach",step:"은혜 집중! 끝판 정리",title:"괄호도 있고 양쪽에 x도 있을 때",
+       html:`<p>제일 헷갈리는 <b>3(2x+1) = 2x + …</b> 같은 식! 그래도 <b>한 줄씩</b> 천천히 하면 풀려 😊</p>
+       <div class="eqbox">① 괄호 풀기 (분배)<br>② x는 왼쪽으로 이항<br>③ 숫자는 오른쪽으로 이항<br>④ x앞 숫자로 나누기</div>
+       <p>순서만 지키면 어떤 식도 안 무서워! 🛡️</p>`,
+       tip:"<b>① 괄호 → ② x 모으기 → ③ 숫자 모으기 → ④ 나누기</b>"},
+      {gen:"tidyCombo",repeat:3},
      ]},
   ]},
   {title:"⚡ 고수 모험 (문장→식, 미지수 2~3개)",countries:[
@@ -973,12 +1012,38 @@ const GROUPS=[
        tip:"<b>y=…</b> 면 통째로 끼워넣어!"},
       {gen:"subst",repeat:3},
      ]},
-    {flag:"🏛️",lv:"LEVEL 10 · 미지수 3개",name:"세 기둥 신전 (연립③)",desc:"x,y,z 세 개! 하나씩 줄이기",
+    {flag:"🏛️",lv:"LEVEL 10 · 미지수 3개",name:"세 기둥 신전 (연립③)",desc:"문장에서 세 식을 찾고, 두 식을 더하거나 빼서 풀기",
      steps:[
-      {type:"teach",step:"최고 난이도",title:"미지수 3개 줄이기",
-       html:`<p><b>핵심: 한 번에 하나씩!</b> 3개→2개→1개→답.</p>
-       <div class="eqbox">x+y+z=6, x=1,y=2 → 1+2+z=6 → <b>z=3</b></div>`,tip:"하나씩 줄이면 결국 1개!"},
-      {gen:"three",repeat:3},
+      {type:"teach",step:"세 개의 미지수",title:"모르는 수가 셋이면 식도 셋!",
+       html:`<p>모르는 수가 <b>3개(x, y, z)</b>면, 답을 정하려면 <b>식도 3개</b> 필요해.</p>
+       <p>걱정 마! <b>두 식을 더하거나 빼서</b> 미지수를 하나씩 없애면 돼. 3개 → 2개 → 1개로 줄어들어 💪</p>`,
+       tip:"<b>두 식을 더하거나 빼면 변수가 하나 사라져!</b>"},
+      {type:"gate",step:"🔍 탐정 관문",title:"문장에서 세 식 찾기",
+       story:`"바구니에 <b>사과(x)·바나나(y)·포도(z)</b>가 모두 <b>9개</b>. <b>사과와 바나나</b>를 합치면 <b>6개</b>. 사과는 바나나보다 <b>2개 많아</b>."`,
+       intro:"탐정 "+window.getPlayerName()+"! 숨은 식 3개를 찾아줘 🔍",
+       checks:[
+        {gq:"<b>전부 합쳐</b> 몇 개? → 식 ①",opts:["x+y+z=9","x+y=6","x−y=2"],answer:0,no:"'모두 9개' → x+y+z=9!"},
+        {gq:"<b>사과+바나나</b>는? → 식 ②",opts:["x+y+z=9","x+y=6","x−y=2"],answer:1,no:"'사과와 바나나 합 6개' → x+y=6!"},
+        {gq:"<b>사과가 2개 많아</b> → 식 ③",opts:["x+y=6","x−y=2","y−x=2"],answer:1,no:"사과(x)가 더 많으니 x−y=2!"}],
+       pass:"완벽해! 세 식: ① x+y+z=9 　② x+y=6 　③ x−y=2. 이제 하나씩 줄이자 🏛️"},
+      {type:"teach",step:"1단계: z 구하기",title:"① − ②로 z만 남기기",
+       html:`<p>식①에서 식②를 <b>빼</b> 볼까? 똑같은 x+y가 사라져!</p>
+       <div class="eqbox">　x+y+z = 9<br>−) x+y　 = 6<br>──────────<br>　　　 z = 3</div>
+       <p>x와 y가 양쪽에 똑같이 있어서 빼면 사라지고 <b>z만</b> 남아 ✨</p>`,
+       tip:"<b>같은 부분이 있으면 빼서 없앤다!</b>"},
+      {type:"input",step:"확인",title:"z는 몇 개?",
+       q:`식① <b>x+y+z=9</b> 에서 식② <b>x+y=6</b> 을 빼면<br>z = 9 − 6 = ?`,answer:3,okMsg:"맞아! z=3 (포도 3개) 🍇",
+       wrongHints:[{test:()=>true,type:"calc",msg:"9−6=3. x+y가 사라지고 z만 남아!"}]},
+      {type:"teach",step:"2단계: x 구하기",title:"② + ③으로 y 없애기",
+       html:`<p>이번엔 식②와 식③을 <b>더해</b>! +y와 −y가 만나 사라져.</p>
+       <div class="eqbox">　x+y = 6<br>＋) x−y = 2<br>──────────<br>　2x　 = 8 → <b>x=4</b></div>`,
+       tip:"<b>부호가 반대(+y, −y)면 더해서 없앤다!</b>"},
+      {type:"input",step:"확인",title:"x는 몇 개?",
+       q:`식② + 식③ → <b>2x = 8</b><br>x = ?`,answer:4,okMsg:"굿! x=4 (사과 4개) 🍎",
+       wrongHints:[{test:v=>v===8,type:"concept",msg:"2로 나눠! 8÷2=4."},{test:()=>true,type:"calc",msg:"2x=8 → x=4."}]},
+      {type:"input",step:"3단계: y 구하기",title:"마지막 y!",
+       q:`x=4를 식② <b>x+y=6</b> 에 넣으면<br>4 + y = 6 → y = ?`,answer:2,okMsg:"완성! y=2. 사과4·바나나2·포도3 = 9개 🎉🏛️",
+       wrongHints:[{test:()=>true,type:"calc",msg:"6−4=2. y=2!"}]},
      ]},
     {flag:"👑",lv:"LEVEL 11 · 종합",name:"챔피언 성 (중등 졸업)",desc:"문장→식→정리→풀이 총동원!",
      steps:[
